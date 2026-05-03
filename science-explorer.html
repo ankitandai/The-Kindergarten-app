@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Science Explorer!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F0F9FF; --ink:#2B2A4C;
+  --yellow:#FFD93D; --green:#95E06C;
+  --pink:#FF6B9D; --blue:#4ECDC4;
+  --orange:#FF9A3C; --purple:#B388EB;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:'Fredoka',sans-serif;
+  background:var(--bg);color:var(--ink);
+  user-select:none;-webkit-user-select:none;
+  touch-action:manipulation;
+  overflow-y:auto;
+  background-image:
+    radial-gradient(circle at 15% 10%,rgba(255,217,61,.18) 0%,transparent 35%),
+    radial-gradient(circle at 85% 85%,rgba(78,205,196,.18) 0%,transparent 40%);
+}
+
+/* ── screens ── */
+.screen{display:none;flex-direction:column;align-items:center;padding:12px 12px 28px;min-height:100%;}
+.screen.active{display:flex;}
+
+/* ── shared header ── */
+.topbar{
+  width:100%;max-width:520px;
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:14px;
+}
+.icon-btn{
+  flex-shrink:0;width:42px;height:42px;border-radius:999px;
+  border:3px solid var(--ink);background:white;
+  box-shadow:2px 2px 0 var(--ink);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-family:inherit;transition:transform .1s,box-shadow .1s;
+  text-decoration:none;color:var(--ink);
+}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.topbar-title{flex:1;font-family:'Bowlby One',sans-serif;font-size:20px;text-align:center;}
+.avatar-chip{
+  flex-shrink:0;display:flex;align-items:center;gap:5px;
+  background:white;border:2px solid var(--ink);border-radius:999px;
+  padding:4px 10px 4px 5px;box-shadow:2px 2px 0 var(--ink);
+}
+.chip-img  {width:26px;height:26px;object-fit:contain;border-radius:50%;}
+.chip-emoji{font-size:20px;line-height:1;}
+.chip-name {font-size:13px;font-weight:700;}
+
+/* ══ HOME SCREEN ══ */
+.home-title{
+  font-family:'Bowlby One',sans-serif;
+  font-size:36px;line-height:1.1;letter-spacing:-1px;
+  color:var(--ink);text-align:center;margin-bottom:4px;
+}
+.home-title span{color:var(--pink);}
+.home-sub{font-size:16px;font-weight:600;text-align:center;color:#666;margin-bottom:22px;}
+
+.cat-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  width:100%;max-width:480px;
+}
+.cat-card{
+  border:4px solid var(--ink);border-radius:24px;box-shadow:5px 5px 0 var(--ink);
+  padding:18px 12px 14px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;
+  transition:transform .12s,box-shadow .12s;
+}
+.cat-card:hover {transform:translateY(-4px);box-shadow:5px 9px 0 var(--ink);}
+.cat-card:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+.cat-icon {font-size:52px;line-height:1;}
+.cat-title{font-family:'Bowlby One',sans-serif;font-size:17px;line-height:1.2;}
+.cat-stars{font-size:16px;min-height:20px;letter-spacing:2px;}
+.cat-prog {font-size:12px;font-weight:600;color:#888;}
+
+/* ══ FACTS SCREEN ══ */
+.fact-card{
+  width:100%;max-width:440px;
+  border:4px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);
+  background:white;padding:30px 22px 24px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;
+  margin-bottom:14px;min-height:300px;position:relative;overflow:hidden;
+}
+.fact-badge{
+  position:absolute;top:14px;left:14px;
+  background:var(--yellow);border:2px solid var(--ink);border-radius:999px;
+  padding:4px 12px;font-size:12px;font-weight:700;
+}
+.fact-counter{
+  position:absolute;top:14px;right:14px;
+  background:var(--ink);color:white;border-radius:999px;
+  padding:4px 12px;font-size:12px;font-weight:700;
+}
+.fact-emoji{font-size:94px;line-height:1;}
+.fact-text {font-size:22px;font-weight:700;line-height:1.38;color:var(--ink);}
+
+.fact-nav{
+  display:flex;gap:12px;align-items:center;
+  width:100%;max-width:440px;justify-content:space-between;
+  margin-bottom:12px;
+}
+.nav-btn{
+  border:3px solid var(--ink);border-radius:14px;background:white;
+  box-shadow:3px 3px 0 var(--ink);padding:10px 22px;
+  font-family:'Fredoka',sans-serif;font-size:17px;font-weight:700;cursor:pointer;
+  transition:transform .1s,box-shadow .1s;
+}
+.nav-btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink);}
+.nav-btn:disabled{opacity:.32;cursor:default;transform:none;}
+
+.dots{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:180px;}
+.dot{width:10px;height:10px;border-radius:50%;background:#ddd;flex-shrink:0;transition:all .2s;}
+.dot.seen  {background:#aaa;}
+.dot.active{background:var(--ink);width:14px;}
+
+.quiz-cta{
+  width:100%;max-width:440px;
+  padding:16px;font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;
+  border:4px solid var(--ink);border-radius:16px;
+  box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:white;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  transition:transform .1s,box-shadow .1s;
+}
+.quiz-cta.all-seen{background:linear-gradient(135deg,#11998e,#38ef7d);color:var(--ink);}
+.quiz-cta:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+
+/* ══ QUIZ SCREEN ══ */
+.quiz-wrap{width:100%;max-width:460px;display:flex;flex-direction:column;gap:16px;flex:1;}
+.qz-meta{
+  display:flex;justify-content:space-between;align-items:center;
+}
+.qz-badge{
+  background:var(--ink);color:white;border-radius:999px;
+  padding:5px 16px;font-size:13px;font-weight:700;
+}
+.qz-score-badge{
+  background:var(--yellow);border:2px solid var(--ink);border-radius:999px;
+  padding:5px 14px;font-size:14px;font-weight:700;
+}
+.progress-bar-wrap{
+  width:100%;height:10px;background:#e0e0e0;border-radius:999px;overflow:hidden;
+  border:2px solid var(--ink);
+}
+.progress-bar{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:999px;transition:width .4s;}
+.qz-question{font-size:24px;font-weight:700;line-height:1.38;color:var(--ink);}
+.qz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.qz-opt{
+  padding:15px 10px;font-family:'Fredoka',sans-serif;font-size:18px;font-weight:700;
+  border:4px solid var(--ink);border-radius:16px;background:white;
+  box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:var(--ink);
+  transition:transform .1s,box-shadow .1s;line-height:1.3;
+}
+.qz-opt:active:not(:disabled){transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.qz-opt:disabled{cursor:default;}
+.qz-opt.correct{background:var(--green)!important;border-color:#388e3c;box-shadow:4px 4px 0 #388e3c;}
+.qz-opt.wrong  {background:#ffcdd2!important;border-color:#e53935;box-shadow:4px 4px 0 #e53935;}
+
+/* ══ RESULTS SCREEN ══ */
+.result-card{
+  width:100%;max-width:380px;background:white;
+  border:4px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);
+  padding:32px 24px;display:flex;flex-direction:column;align-items:center;
+  gap:12px;text-align:center;margin-top:8px;
+}
+.result-emoji{font-size:72px;line-height:1;}
+.result-title{font-family:'Bowlby One',sans-serif;font-size:30px;color:var(--pink);}
+.result-stars{font-size:38px;letter-spacing:4px;}
+.result-score{font-size:18px;font-weight:700;color:#555;}
+.big-btn{
+  width:100%;padding:14px;font-family:'Fredoka',sans-serif;font-size:19px;font-weight:700;
+  border:4px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;transition:transform .1s,box-shadow .1s;
+}
+.big-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.big-btn.green {background:var(--green);color:var(--ink);}
+.big-btn.purple{background:linear-gradient(135deg,#667eea,#764ba2);color:white;}
+
+/* ── speaker button (fact card) ── */
+.speaker-btn{
+  position:absolute;bottom:14px;right:14px;
+  width:48px;height:48px;border-radius:50%;
+  background:var(--yellow);border:3px solid var(--ink);
+  box-shadow:2px 2px 0 var(--ink);font-size:22px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .1s,box-shadow .1s;
+}
+.speaker-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.speaker-btn.speaking{animation:speakerPulse .7s ease-in-out infinite;}
+
+/* ── speaker button (quiz question) ── */
+.qz-speaker{
+  flex-shrink:0;width:40px;height:40px;border-radius:50%;
+  background:white;border:3px solid var(--ink);
+  box-shadow:2px 2px 0 var(--ink);font-size:19px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .1s,box-shadow .1s;margin-top:2px;
+}
+.qz-speaker:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.qz-speaker.speaking{animation:speakerPulse .7s ease-in-out infinite;}
+
+@keyframes speakerPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+
+/* confetti */
+.confetti-p{position:fixed;pointer-events:none;z-index:999;width:12px;height:12px;border-radius:2px;}
+
+@media(max-width:400px){
+  .home-title{font-size:28px;} .cat-icon{font-size:42px;}
+  .fact-emoji{font-size:78px;} .fact-text{font-size:19px;}
+  .qz-question{font-size:20px;} .qz-opt{font-size:16px;padding:13px 8px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══════════════════════════════════════ -->
+<div class="screen active" id="homeScreen">
+  <div class="topbar">
+    <a class="icon-btn" href="index.html" title="Home">🏠</a>
+    <div class="topbar-title"></div>
+    <div class="avatar-chip" id="avatarChip">
+      <span class="chip-emoji" id="chipEmoji">🎒</span>
+      <span class="chip-name"  id="chipName">Explorer</span>
+    </div>
+  </div>
+
+  <div class="home-title">Science<br><span>Explorer!</span> 🔬</div>
+  <p class="home-sub">Pick a topic and start discovering!</p>
+
+  <div class="cat-grid" id="catGrid"><!-- JS fills this --></div>
+</div>
+
+<!-- ══ FACTS ═════════════════════════════════════ -->
+<div class="screen" id="factsScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="topbar-title" id="factsTitle">Animals</div>
+    <button class="icon-btn" onclick="startQuiz()" title="Jump to quiz">🎯</button>
+  </div>
+
+  <div class="fact-card" id="factCard">
+    <div class="fact-badge">Did you know?</div>
+    <div class="fact-counter" id="factCounter">1 / 10</div>
+    <div class="fact-emoji" id="factEmoji">🦋</div>
+    <div class="fact-text"  id="factText">Loading…</div>
+    <button class="speaker-btn" id="factSpeaker" onclick="speakFact()" title="Read aloud">🔊</button>
+  </div>
+
+  <div class="fact-nav">
+    <button class="nav-btn" id="prevBtn" onclick="moveFact(-1)">← Prev</button>
+    <div class="dots" id="factDots"></div>
+    <button class="nav-btn" id="nextBtn" onclick="moveFact(1)">Next →</button>
+  </div>
+
+  <button class="quiz-cta" id="quizCta" onclick="startQuiz()">🎯 Take the Quiz!</button>
+</div>
+
+<!-- ══ QUIZ ══════════════════════════════════════ -->
+<div class="screen" id="quizScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="showScreen('factsScreen')">←</button>
+    <div class="topbar-title">Quiz Time! 🎯</div>
+    <div></div>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="qz-meta">
+      <div class="qz-badge"       id="qzBadge">Question 1 of 5</div>
+      <div class="qz-score-badge" id="qzScore">⭐ 0</div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="qzBar" style="width:0%"></div></div>
+    <div style="display:flex;align-items:flex-start;gap:10px;">
+      <div class="qz-question" id="qzQuestion" style="flex:1;">Loading…</div>
+      <button class="qz-speaker" id="qzSpeaker" onclick="speakQuestion()" title="Read aloud">🔊</button>
+    </div>
+    <div class="qz-opts" id="qzOpts"></div>
+  </div>
+</div>
+
+<!-- ══ RESULTS ═══════════════════════════════════ -->
+<div class="screen" id="resultsScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">🏠</button>
+    <div class="topbar-title" id="resultsCatTitle">Animals</div>
+    <div></div>
+  </div>
+  <div class="result-card">
+    <div class="result-emoji" id="resultEmoji">🏆</div>
+    <div class="result-title" id="resultTitle">Amazing!</div>
+    <div class="result-stars" id="resultStars">⭐⭐⭐</div>
+    <div class="result-score" id="resultScore">5 out of 5 right!</div>
+    <button class="big-btn green"  onclick="startQuiz()">🔄 Try Again</button>
+    <button class="big-btn purple" onclick="goHome()">📚 More Topics</button>
+  </div>
+</div>
+
+<script>
+// ══ DATA ═════════════════════════════════════════════════════════════════════
+
+const CATEGORIES = [
+  {id:'animals', title:'Animals',    icon:'🐾', color:'#FF9A3C', bg:'#fff3e0'},
+  {id:'space',   title:'Space',      icon:'🚀', color:'#667eea', bg:'#eef0ff'},
+  {id:'plants',  title:'Plants',     icon:'🌿', color:'#5cb85c', bg:'#f0fff0'},
+  {id:'weather', title:'Weather',    icon:'⛈️',  color:'#4ECDC4', bg:'#e8fffe'},
+  {id:'body',    title:'Human Body', icon:'❤️',  color:'#FF6B9D', bg:'#fff0f5'},
+  {id:'dinos',   title:'Dinosaurs',  icon:'🦕', color:'#a07228', bg:'#fff8e1'},
+];
+
+const FACTS = {
+  animals:[
+    {e:'🦋', t:'Butterflies taste with their feet!'},
+    {e:'🐘', t:'Elephants are the only animals that cannot jump.'},
+    {e:'🐙', t:'Octopuses have three hearts and blue blood!'},
+    {e:'🐬', t:'Dolphins sleep with one eye open to stay alert.'},
+    {e:'🦒', t:'Giraffes have the same number of neck bones as humans — just 7!'},
+    {e:'🦩', t:'Flamingos are pink because of the shrimp they eat.'},
+    {e:'🐝', t:'A bee visits up to 5,000 flowers to make one jar of honey!'},
+    {e:'🐸', t:'A group of frogs is called an army.'},
+    {e:'🦁', t:'Lions can sleep up to 20 hours a day!'},
+    {e:'🐧', t:'Male penguins gift pebbles to the female they like — it\'s how they propose!'},
+  ],
+  space:[
+    {e:'☀️', t:'One million Earths could fit inside the Sun!'},
+    {e:'🌙', t:'Astronaut footprints on the Moon will last millions of years — there\'s no wind to blow them away!'},
+    {e:'🪐', t:'Saturn\'s beautiful rings are made of billions of chunks of ice and rock.'},
+    {e:'⭐', t:'There are more stars in space than grains of sand on all of Earth\'s beaches!'},
+    {e:'🚀', t:'It takes about 3 days to travel from Earth to the Moon.'},
+    {e:'🌍', t:'Earth is the only planet we know of that has life on it.'},
+    {e:'🔴', t:'Mars is called the Red Planet because of its rusty red dust.'},
+    {e:'🌀', t:'Jupiter has a storm bigger than Earth that has been raging for over 350 years!'},
+    {e:'💫', t:'Sunlight takes 8 minutes to travel from the Sun all the way to Earth.'},
+    {e:'🌑', t:'A day on Venus lasts longer than a whole year on Venus!'},
+  ],
+  plants:[
+    {e:'🌱', t:'Plants make their own food from sunlight — this is called photosynthesis!'},
+    {e:'🌸', t:'Flowers make seeds that can grow into brand new plants.'},
+    {e:'🌳', t:'Trees are the longest-living things on Earth.'},
+    {e:'🌲', t:'The oldest living tree is over 5,000 years old!'},
+    {e:'🪵', t:'Bamboo is the fastest-growing plant — it can grow 90 cm in a single day!'},
+    {e:'🌻', t:'Sunflowers slowly turn to follow the Sun as it moves across the sky.'},
+    {e:'🍄', t:'Mushrooms are not plants — they\'re fungi, a completely different kingdom of life!'},
+    {e:'🌵', t:'Cacti store water inside their thick stems to survive in the desert.'},
+    {e:'🌿', t:'Plants release the oxygen that we breathe every single day!'},
+    {e:'🌍', t:'The biggest living thing on Earth is a giant fungus in Oregon, USA — it\'s 8 km wide!'},
+  ],
+  weather:[
+    {e:'⚡', t:'Lightning is 5 times hotter than the surface of the Sun!'},
+    {e:'🌈', t:'Rainbows are actually full circles — we just can\'t see the bottom half from the ground.'},
+    {e:'❄️', t:'No two snowflakes are exactly alike — every single one is unique!'},
+    {e:'🌪️', t:'A tornado can spin faster than a racing car!'},
+    {e:'☁️', t:'A fluffy white cloud can weigh as much as 100 elephants!'},
+    {e:'💧', t:'The water you drink today is the same water dinosaurs drank — it gets recycled forever!'},
+    {e:'🌧️', t:'Rain starts life as tiny ice crystals high up inside clouds.'},
+    {e:'🌬️', t:'Wind is simply air moving from an area of high pressure to low pressure.'},
+    {e:'☃️', t:'The most snow in a single day was 193 cm — taller than most grown-ups!'},
+    {e:'🌡️', t:'The hottest temperature ever recorded on Earth was 56.7°C in Death Valley, USA.'},
+  ],
+  body:[
+    {e:'❤️', t:'Your heart beats about 100,000 times every single day!'},
+    {e:'🦷', t:'You get two sets of teeth in your life — baby teeth and then adult teeth.'},
+    {e:'🧠', t:'Your brain never stops working — not even while you sleep!'},
+    {e:'👁️', t:'Your eyes can tell apart about 10 million different colours!'},
+    {e:'🦴', t:'Babies are born with 270 bones, but adults only have 206 — some fuse together as you grow!'},
+    {e:'💨', t:'You take about 20,000 breaths every single day.'},
+    {e:'👃', t:'Your nose can detect over one trillion different smells!'},
+    {e:'💪', t:'The strongest muscle for its size in your body is your jaw muscle!'},
+    {e:'👅', t:'You have around 10,000 taste buds on your tongue.'},
+    {e:'🩸', t:'Your blood travels all the way around your body in just about 20 seconds!'},
+  ],
+  dinos:[
+    {e:'🦕', t:'The word "dinosaur" means "terrible lizard" in ancient Greek.'},
+    {e:'🦖', t:'T-Rex had such tiny arms that it couldn\'t even reach its own mouth!'},
+    {e:'🥚', t:'All dinosaurs hatched from eggs, just like birds and reptiles today.'},
+    {e:'🦷', t:'Some dinosaurs grew brand new teeth every few weeks throughout their lives!'},
+    {e:'🐦', t:'Birds are modern-day dinosaurs — they are the direct descendants of ancient dinos!'},
+    {e:'📏', t:'Argentinosaurus was the longest dinosaur — longer than 3 school buses end to end!'},
+    {e:'🌍', t:'Dinosaurs lived on every continent on Earth, even Antarctica!'},
+    {e:'☄️', t:'Most dinosaurs went extinct about 66 million years ago after a massive asteroid hit Earth.'},
+    {e:'🧠', t:'Stegosaurus had a brain about the size of a walnut!'},
+    {e:'🔍', t:'Scientists who study dinosaur fossils are called palaeontologists.'},
+  ],
+};
+
+const QUIZ = {
+  animals:[
+    {q:'How do butterflies taste things?',             a:0, o:['With their feet','With their tongue','With their nose','With their eyes']},
+    {q:'Which animal cannot jump at all?',             a:2, o:['Tiger','Horse','Elephant','Lion']},
+    {q:'How many hearts does an octopus have?',        a:1, o:['One','Three','Two','Five']},
+    {q:'Why are flamingos pink?',                      a:0, o:['Because of the shrimp they eat','They are born pink','They roll in pink mud','Their feathers change colour']},
+    {q:'How many neck bones does a giraffe have?',     a:2, o:['14','3','7','21']},
+  ],
+  space:[
+    {q:'How many Earths could fit inside the Sun?',    a:3, o:['1,000','100,000','10,000','1,000,000']},
+    {q:'What are Saturn\'s rings made of?',            a:0, o:['Ice and rock','Gas and fire','Dust and clouds','Sand and water']},
+    {q:'How long does sunlight take to reach Earth?',  a:2, o:['8 hours','8 seconds','8 minutes','8 days']},
+    {q:'Why is Mars called the Red Planet?',           a:1, o:['It\'s on fire','Rusty red dust covers it','Red plants grow there','Its sky is red']},
+    {q:'How long does it take to reach the Moon?',     a:0, o:['About 3 days','About 3 hours','About 3 weeks','About 3 months']},
+  ],
+  plants:[
+    {q:'What is it called when plants make food from sunlight?', a:1, o:['Respiration','Photosynthesis','Digestion','Germination']},
+    {q:'Which plant grows the fastest?',               a:2, o:['Rose','Oak tree','Bamboo','Cactus']},
+    {q:'Mushrooms belong to which kingdom of life?',   a:3, o:['Plants','Animals','Bacteria','Fungi']},
+    {q:'What do cacti store in their thick stems?',    a:0, o:['Water','Food','Air','Seeds']},
+    {q:'What gas do plants release that we breathe?',  a:1, o:['Carbon dioxide','Oxygen','Steam','Nitrogen']},
+  ],
+  weather:[
+    {q:'How hot is lightning compared to the Sun\'s surface?', a:0, o:['5 times hotter','The same temperature','Half as hot','10 times cooler']},
+    {q:'What shape is a complete rainbow?',            a:2, o:['A triangle','A straight line','A circle','A square']},
+    {q:'What eventually falls as rain, starting in clouds as…?', a:1, o:['Snowflakes','Tiny ice crystals','Mist','Water drops']},
+    {q:'How heavy can a single cloud be?',             a:3, o:['1 elephant','10 elephants','1,000 elephants','100 elephants']},
+    {q:'Are any two snowflakes exactly the same?',     a:1, o:['Yes, always','No, every one is unique','Only very small ones','Only in blizzards']},
+  ],
+  body:[
+    {q:'How many times does your heart beat each day?',a:2, o:['1,000','10,000','100,000','1,000,000']},
+    {q:'How many bones does a baby have at birth?',    a:0, o:['270','206','150','300']},
+    {q:'How many taste buds are on your tongue?',      a:3, o:['100','1,000','50,000','10,000']},
+    {q:'How many breaths do you take every day?',      a:1, o:['2,000','20,000','200','200,000']},
+    {q:'In how long does blood travel your whole body?',a:2, o:['2 minutes','5 minutes','20 seconds','1 hour']},
+  ],
+  dinos:[
+    {q:'What does "dinosaur" mean?',                   a:1, o:['Ancient bird','Terrible lizard','Giant beast','Big teeth']},
+    {q:'Which animals alive today are dino descendants?',a:0, o:['Birds','Sharks','Crocodiles','Snakes']},
+    {q:'What size was the Stegosaurus brain?',         a:2, o:['A football','A melon','A walnut','A grape']},
+    {q:'When did most dinosaurs go extinct?',          a:0, o:['66 million years ago','6 million years ago','600 million years ago','6 billion years ago']},
+    {q:'What are dinosaur fossil scientists called?',  a:3, o:['Archaeologists','Biologists','Geologists','Palaeontologists']},
+  ],
+};
+
+// ══ SPEECH ═══════════════════════════════════════
+const TTS = ('speechSynthesis' in window);
+
+// Warm up voices list (async on some browsers)
+if (TTS) speechSynthesis.getVoices();
+if (TTS && speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+}
+
+function speak(text) {
+  if (!TTS) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate  = 0.88;
+  u.pitch = 1.1;
+  u.lang  = 'en-US';
+  // prefer a natural English voice when available
+  const voices = speechSynthesis.getVoices();
+  const preferred = voices.find(v =>
+    v.lang.startsWith('en') && /samantha|karen|zira|google us english/i.test(v.name)
+  ) || voices.find(v => v.lang.startsWith('en-')) || null;
+  if (preferred) u.voice = preferred;
+  u.onstart = () => setSpeakerState(true);
+  u.onend   = () => setSpeakerState(false);
+  u.onerror  = () => setSpeakerState(false);
+  speechSynthesis.speak(u);
+}
+
+function setSpeakerState(active) {
+  document.getElementById('factSpeaker')?.classList.toggle('speaking', active);
+  document.getElementById('qzSpeaker')?.classList.toggle('speaking', active);
+}
+
+function speakFact() {
+  if (cat) speak(FACTS[cat][factIdx].t);
+}
+
+function speakQuestion() {
+  const el = document.getElementById('qzQuestion');
+  if (el) speak(el.textContent);
+}
+
+function stopSpeech() {
+  if (TTS) { speechSynthesis.cancel(); setSpeakerState(false); }
+}
+
+// ══ STATE ════════════════════════════════════════
+let cat       = null;   // current category id
+let factIdx   = 0;
+let seenSet   = new Set();
+let qList     = [];
+let qIdx      = 0;
+let score     = 0;
+let progress  = {};     // {catId: {stars, seen, seenArr, lastFact}}
+
+// ══ STARTUP ══════════════════════════════════════
+function init(){
+  try{ progress = JSON.parse(localStorage.getItem('kg_sci')||'{}'); }catch(e){}
+  buildCatGrid();
+  loadAvatarChip();
+}
+
+function buildCatGrid(){
+  const grid = document.getElementById('catGrid');
+  grid.innerHTML = '';
+  CATEGORIES.forEach(c=>{
+    const p = progress[c.id]||{};
+    const div = document.createElement('div');
+    div.className = 'cat-card';
+    div.id = 'catcard_'+c.id;
+    div.style.background = c.bg;
+    div.innerHTML=`
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-title">${c.title}</div>
+      <div class="cat-stars" id="cstars_${c.id}">${starsHtml(p.stars)}</div>
+      <div class="cat-prog"  id="cprog_${c.id}">${p.seen>0?p.seen+'/10 facts':'Tap to explore!'}</div>`;
+    div.onclick=()=>openCat(c.id);
+    grid.appendChild(div);
+  });
+}
+
+function starsHtml(s){
+  if(s===undefined||s<0) return '';
+  return '⭐'.repeat(s)+'☆'.repeat(3-s);
+}
+
+function loadAvatarChip(){
+  const saved = localStorage.getItem('kg_avatar');
+  const emojiEl = document.getElementById('chipEmoji');
+  const nameEl  = document.getElementById('chipName');
+  if(!saved) return;
+  if(saved==='vaana'){
+    emojiEl.innerHTML='<img class="chip-img" src="Math runner/Vaana.png">';
+    nameEl.textContent='Vaana';
+  } else if(saved==='aaru'){
+    emojiEl.innerHTML='<img class="chip-img" src="Math runner/Aaru.png">';
+    nameEl.textContent='Aaru';
+  } else if(saved==='custom'){
+    const d=JSON.parse(localStorage.getItem('kg_custom_avatar')||'{}');
+    emojiEl.textContent=d.emoji||'😊';
+    nameEl.textContent =d.name ||'Explorer';
+  }
+}
+
+// ══ FACTS ════════════════════════════════════════
+function openCat(id){
+  cat      = id;
+  const p  = progress[id]||{};
+  factIdx  = p.lastFact||0;
+  seenSet  = new Set(p.seenArr||[]);
+
+  const c = CATEGORIES.find(x=>x.id===id);
+  document.getElementById('factsTitle').textContent = c.icon+' '+c.title;
+  document.getElementById('factCard').style.borderColor = c.color;
+  document.getElementById('factCard').style.boxShadow  = `6px 6px 0 ${c.color}`;
+
+  buildDots();
+  showFact();
+  showScreen('factsScreen');
+}
+
+function buildDots(){
+  const el = document.getElementById('factDots');
+  el.innerHTML='';
+  FACTS[cat].forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='dot'; d.id='dot_'+i;
+    el.appendChild(d);
+  });
+}
+
+function showFact(){
+  const facts=FACTS[cat];
+  const f=facts[factIdx];
+  seenSet.add(factIdx);
+  saveProgress();
+
+  document.getElementById('factEmoji').textContent   = f.e;
+  document.getElementById('factText').textContent    = f.t;
+  document.getElementById('factCounter').textContent = (factIdx+1)+' / '+facts.length;
+  document.getElementById('prevBtn').disabled = factIdx===0;
+  document.getElementById('nextBtn').disabled = factIdx===facts.length-1;
+
+  const allSeen = seenSet.size >= facts.length;
+  const cta = document.getElementById('quizCta');
+  cta.className = 'quiz-cta'+(allSeen?' all-seen':'');
+  cta.textContent = allSeen
+    ? '🎯 Take the Quiz! — All facts seen!'
+    : `🎯 Take the Quiz! (${seenSet.size} / ${facts.length} seen)`;
+
+  // update dots
+  facts.forEach((_,i)=>{
+    const d=document.getElementById('dot_'+i);
+    if(d) d.className='dot'+(i===factIdx?' active':seenSet.has(i)?' seen':'');
+  });
+
+  // pop-in animation then auto-speak
+  const card=document.getElementById('factCard');
+  card.style.transition='none'; card.style.opacity='0'; card.style.transform='scale(.94)';
+  requestAnimationFrame(()=>{
+    card.style.transition='opacity .2s,transform .2s';
+    card.style.opacity='1'; card.style.transform='scale(1)';
+  });
+  setTimeout(speakFact, 280);
+}
+
+function moveFact(dir){
+  factIdx=Math.max(0,Math.min(FACTS[cat].length-1,factIdx+dir));
+  showFact();
+}
+
+// ══ QUIZ ═════════════════════════════════════════
+function startQuiz(){
+  qList  = shuffle([...QUIZ[cat]]).slice(0,5);
+  qIdx   = 0; score = 0;
+  document.getElementById('qzScore').textContent='⭐ 0';
+  renderQ();
+  showScreen('quizScreen');
+}
+
+function renderQ(){
+  if(qIdx>=qList.length){ showResults(); return; }
+  const q=qList[qIdx];
+  const pct=Math.round((qIdx/qList.length)*100);
+  document.getElementById('qzBadge').textContent    = `Question ${qIdx+1} of ${qList.length}`;
+  document.getElementById('qzBar').style.width      = pct+'%';
+  document.getElementById('qzQuestion').textContent = q.q;
+  setTimeout(speakQuestion, 200);
+
+  // shuffle options, keep track of which is correct
+  const opts = q.o.map((t,i)=>({t, correct:i===q.a}));
+  shuffle(opts);
+
+  const grid=document.getElementById('qzOpts');
+  grid.innerHTML='';
+  opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='qz-opt'; btn.textContent=opt.t;
+    btn.onclick=()=>pick(btn,opt.correct,grid);
+    grid.appendChild(btn);
+  });
+}
+
+function pick(btn,correct,grid){
+  Array.from(grid.children).forEach(b=>b.disabled=true);
+  if(correct){
+    btn.classList.add('correct'); score++;
+    document.getElementById('qzScore').textContent='⭐ '+score;
+    flashBody('#d4ffd4');
+  } else {
+    btn.classList.add('wrong');
+    // reveal right answer
+    Array.from(grid.children).forEach(b=>{
+      if(!b.classList.contains('wrong')&&b.disabled) { /* keep looking */ }
+    });
+    flashBody('#ffe0e0');
+  }
+  setTimeout(()=>{ qIdx++; renderQ(); },950);
+}
+
+function flashBody(col){
+  document.body.style.transition='none';
+  document.body.style.backgroundColor=col;
+  setTimeout(()=>{ document.body.style.transition='background-color .55s'; document.body.style.backgroundColor=''; },60);
+}
+
+// ══ RESULTS ══════════════════════════════════════
+function showResults(){
+  const total=qList.length, pct=score/total;
+  let stars,emoji,title;
+  if(pct>=1)      {stars=3;emoji='🏆';title='Perfect!';}
+  else if(pct>=.6){stars=2;emoji='🌟';title='Great Job!';}
+  else if(pct>=.4){stars=1;emoji='😊';title='Good Try!';}
+  else            {stars=0;emoji='💪';title='Keep Going!';}
+
+  // persist best score
+  if(!progress[cat]) progress[cat]={};
+  progress[cat].stars=Math.max(progress[cat].stars||0,stars);
+  saveProgress();
+  refreshCatCard(cat);
+
+  const c=CATEGORIES.find(x=>x.id===cat);
+  document.getElementById('resultsCatTitle').textContent = c.icon+' '+c.title;
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent  = title;
+  document.getElementById('resultStars').textContent  = '⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('resultScore').textContent  = `You got ${score} out of ${total} right!`;
+
+  showScreen('resultsScreen');
+  if(stars>=2) sprayConfetti();
+}
+
+// ══ PERSISTENCE ══════════════════════════════════
+function saveProgress(){
+  if(!progress[cat]) progress[cat]={};
+  progress[cat].seen    = seenSet.size;
+  progress[cat].seenArr = [...seenSet];
+  progress[cat].lastFact= factIdx;
+  localStorage.setItem('kg_sci',JSON.stringify(progress));
+}
+
+function refreshCatCard(id){
+  const p=progress[id]||{};
+  const s=document.getElementById('cstars_'+id);
+  const g=document.getElementById('cprog_'+id);
+  if(s) s.textContent=starsHtml(p.stars);
+  if(g) g.textContent=p.seen>0?p.seen+'/10 facts':'Tap to explore!';
+}
+
+// ══ HELPERS ══════════════════════════════════════
+function showScreen(id){
+  stopSpeech();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function goHome(){ showScreen('homeScreen'); }
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function sprayConfetti(){
+  const cols=['#FF6B9D','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#B388EB'];
+  for(let i=0;i<40;i++) setTimeout(()=>{
+    const el=document.createElement('div'); el.className='confetti-p';
+    el.style.left=Math.random()*100+'vw'; el.style.top='-20px';
+    el.style.background=cols[Math.floor(Math.random()*cols.length)];
+    el.style.borderRadius=Math.random()>.5?'50%':'3px';
+    document.body.appendChild(el);
+    const dur=2000+Math.random()*1500,drift=(Math.random()-.5)*220;
+    el.animate([
+      {transform:`translate(0,0) rotate(0deg)`,opacity:1},
+      {transform:`translate(${drift}px,100vh) rotate(720deg)`,opacity:.3}
+    ],{duration:dur,easing:'ease-in'});
+    setTimeout(()=>el.remove(),dur);
+  },i*70);
+}
+
+init();
+</script>
+</body>
+</html>
