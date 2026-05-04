@@ -196,13 +196,13 @@
   <div class="avatar-row">
 
     <div class="avatar-card vaana-card" onclick="pickBuiltIn('vaana')">
-      <img class="avatar-img" src="Math runner/Vaana.png" alt="Vaana">
+      <img class="avatar-img" src="Avatar/Vaana.png" alt="Vaana">
       <div class="avatar-name">Vaana</div>
       <div class="avatar-title">Football Fan 🏈</div>
     </div>
 
     <div class="avatar-card aaru-card" onclick="pickBuiltIn('aaru')">
-      <img class="avatar-img" src="Math runner/Aaru.png" alt="Aaru">
+      <img class="avatar-img" src="Avatar/Aaru.png" alt="Aaru">
       <div class="avatar-name">Aaru</div>
       <div class="avatar-title">The Explorer 🧭</div>
     </div>
@@ -274,8 +274,8 @@
 <script>
 // ── data ────────────────────────────────────────
 const BUILT_IN = {
-  vaana: { name:'Vaana', img:'Math runner/Vaana.png', title:'Football Fan 🏈' },
-  aaru:  { name:'Aaru',  img:'Math runner/Aaru.png',  title:'The Explorer 🧭' },
+  vaana: { name:'Vaana', img:'Avatar/Vaana.png', head:'Avatar/Vaana - Head.png', title:'Football Fan 🏈' },
+  aaru:  { name:'Aaru',  img:'Avatar/Aaru.png',  head:'Avatar/Aaru - head.png',  title:'The Explorer 🧭' },
 };
 
 const FACE_EMOJIS = ['😊','😎','🤩','🥳','🤓','😄','🐱','🦊'];
@@ -362,7 +362,7 @@ function pickBuiltIn(char) {
   // show selected image
   const img  = document.getElementById('selectedImg');
   const emojiEl = document.getElementById('selectedEmoji');
-  img.src = av.img; img.style.display = 'block';
+  img.src = av.head; img.style.display = 'block';
   emojiEl.style.display = 'none';
   document.getElementById('greeting').innerHTML =
     `Hi <span style="color:var(--pink)">${av.name}</span>! 👋<br>What do you want to play?`;
@@ -408,7 +408,7 @@ function launchScience() { window.location.href = 'science-explorer.html'; }
     const av = BUILT_IN[saved];
     const img  = document.getElementById('selectedImg');
     const emojiEl = document.getElementById('selectedEmoji');
-    img.src = av.img; img.style.display = 'block';
+    img.src = av.head; img.style.display = 'block';
     emojiEl.style.display = 'none';
     document.getElementById('greeting').innerHTML =
       `Hi <span style="color:var(--pink)">${av.name}</span>! 👋<br>What do you want to play?`;

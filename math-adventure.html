@@ -309,6 +309,24 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
 .mbtn.purple{background:linear-gradient(135deg,#667eea,#764ba2);}
 .mbtn.red   {background:linear-gradient(135deg,#f5576c,#f093fb);}
 
+/* ── level banner ── */
+#levelBanner{
+    position:absolute;top:28%;left:50%;
+    transform:translateX(-50%) scale(0.5);
+    background:#f59e0b;border:4px solid #1e1e2e;
+    border-radius:20px;padding:16px 36px;
+    font-size:2.2rem;font-weight:900;letter-spacing:1px;
+    box-shadow:6px 6px 0 #1e1e2e;
+    opacity:0;transition:opacity .3s,transform .3s;
+    pointer-events:none;z-index:50;white-space:nowrap;
+}
+#levelBanner.show{opacity:1;transform:translateX(-50%) scale(1);}
+#levelBadge{
+    background:#f59e0b;color:#1e1e2e;font-weight:900;
+    font-size:.85em;padding:2px 10px;border-radius:50px;
+    border:2px solid rgba(255,255,255,.4);white-space:nowrap;
+}
+
 /* ── results ── */
 #resStars{font-size:2.5em;margin:10px 0;}
 .res-score{font-size:4em;font-weight:800;color:#667eea;}
@@ -354,13 +372,30 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
     <h2>Choose Your Level!</h2>
     <p class="sub">Pick your grade and start running!</p>
     <div class="grid3">
-      <button class="btn-g" onclick="selectGrade('pre-k')">🌱<br>Pre-K</button>
-      <button class="btn-g" onclick="selectGrade('kindergarten')">🌟<br>Kinder-<br>garten</button>
-      <button class="btn-g" onclick="selectGrade('1st')">🚀<br>1st Grade</button>
-      <button class="btn-g" onclick="selectGrade('2nd')">🔥<br>2nd Grade</button>
-      <button class="btn-g" onclick="selectGrade('3rd')">⚡<br>3rd Grade</button>
-      <button class="btn-g" onclick="selectGrade('4th')">💎<br>4th Grade</button>
+      <button class="btn-g" id="gbtn-pre-k"       onclick="selectGrade('pre-k')">🌱<br>Pre-K</button>
+      <button class="btn-g" id="gbtn-kindergarten" onclick="selectGrade('kindergarten')">🌟<br>Kinder-<br>garten</button>
+      <button class="btn-g" id="gbtn-1st"          onclick="selectGrade('1st')">🚀<br>1st Grade</button>
+      <button class="btn-g" id="gbtn-2nd"          onclick="selectGrade('2nd')">🔥<br>2nd Grade</button>
+      <button class="btn-g" id="gbtn-3rd"          onclick="selectGrade('3rd')">⚡<br>3rd Grade</button>
+      <button class="btn-g" id="gbtn-4th"          onclick="selectGrade('4th')">💎<br>4th Grade</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ LEVEL PICKER ══ -->
+<div id="levelPickScreen" class="lobby">
+  <div class="card">
+    <span class="mascot">🏆</span>
+    <h2 id="lpGrade">Grade</h2>
+    <p class="sub">Choose which level to start from!</p>
+    <p style="color:#999;font-size:.9em;margin-bottom:4px;">Best reached: <strong id="lpBest" style="color:#f59e0b;">LVL 1</strong></p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:28px;margin:22px 0 30px;">
+      <button onclick="lpAdj(-1)" style="width:54px;height:54px;font-size:1.9em;border:none;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;cursor:pointer;font-weight:900;box-shadow:0 4px 12px rgba(0,0,0,.2);">−</button>
+      <div id="lpNum" style="font-size:3.8em;font-weight:900;color:#4a4a8a;min-width:90px;text-align:center;">1</div>
+      <button onclick="lpAdj(+1)" style="width:54px;height:54px;font-size:1.9em;border:none;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;cursor:pointer;font-weight:900;box-shadow:0 4px 12px rgba(0,0,0,.2);">+</button>
+    </div>
+    <button class="mbtn green" onclick="lpPlay()" style="font-size:1.15em;padding:16px 44px;">▶ Start!</button><br>
+    <button class="mbtn red" onclick="showLobby('gradeScreen');updateGradeButtons();" style="margin-top:12px;font-size:.92em;">← Back</button>
   </div>
 </div>
 
@@ -375,7 +410,7 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
       <!-- VAANA -->
       <div class="char-card" onclick="selectChar('vaana')">
         <div class="char-preview-wrap">
-          <img class="char-photo" src="Math%20runner/Vaana.png" alt="Vaana">
+          <img class="char-photo" src="Avatar/Vaana.png" alt="Vaana">
         </div>
         <div class="char-name">Vaana</div>
         <div class="char-title">The Football Fan 🏈</div>
@@ -384,7 +419,7 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
       <!-- AARU -->
       <div class="char-card" onclick="selectChar('aaru')">
         <div class="char-preview-wrap">
-          <img class="char-photo" src="Math%20runner/Aaru.png" alt="Aaru">
+          <img class="char-photo" src="Avatar/Aaru.png" alt="Aaru">
         </div>
         <div class="char-name">Aaru</div>
         <div class="char-title">The Explorer 🧭</div>
@@ -443,8 +478,8 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
   <!-- ══ RUNNER — CSS body with photo face ══ -->
   <div id="runner" class="vaana">
     <div class="rc-head">
-      <img class="rc-face vaana-face" src="Math%20runner/Vaana%20-%20Head.png" alt="">
-      <img class="rc-face aaru-face"  src="Math%20runner/Aaru%20-%20head.png"  alt="">
+      <img class="rc-face vaana-face" src="Avatar/Vaana - Head.png" alt="">
+      <img class="rc-face aaru-face"  src="Avatar/Aaru - head.png"  alt="">
       <div class="rc-face custom-face" id="customFace">😊</div>
     </div>
     <div class="rc-neck"></div>
@@ -462,6 +497,15 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
     <div id="fuelTrack"><div id="fuelFill"></div></div>
     <span class="ht" id="hudScore">⭐ 0</span>
     <span class="ht" id="hudPuzzle">🧩 Puzzle!</span>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <span class="ht" id="levelBadge">LVL 1</span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div id="lvlTrack" style="width:46px;height:4px;background:rgba(255,255,255,.22);border-radius:2px;overflow:hidden;">
+          <div id="lvlFill" style="height:100%;width:0%;background:#f59e0b;border-radius:2px;transition:width .35s;"></div>
+        </div>
+        <span id="lvlLeft" style="font-size:.65em;color:rgba(255,255,255,.82);font-weight:700;white-space:nowrap;"></span>
+      </div>
+    </div>
     <span class="ht" id="hudSession">🕐 --:--</span>
   </div>
 
@@ -476,6 +520,7 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
   </div>
 
   <div id="puzzleBanner">🧩 Bonus Puzzle Unlocked!</div>
+  <div id="levelBanner"></div>
   <div id="flash"></div>
 </div>
 
@@ -515,6 +560,7 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
     <div class="res-score" id="resFinalScore">0</div>
     <p style="color:#aaa;font-size:.9em;margin-bottom:6px;">points scored</p>
     <p class="res-stats">✅ Correct: <strong id="resCorrect">0</strong> &nbsp; ❌ Wrong: <strong id="resWrong">0</strong></p>
+    <p class="res-stats" id="resLevel" style="color:#f59e0b;font-weight:800;font-size:1.2em;margin-top:6px;"></p>
     <div style="margin-top:28px;">
       <button class="mbtn purple" onclick="goWelcome()">🔄 Play Again</button>
       <button class="mbtn red"    onclick="goGrade()">🎓 Change Grade</button>
@@ -531,6 +577,10 @@ const FUEL_WRONG   = 5;
 const PUZZLE_FUEL  = 20;
 const PUZZLE_EVERY = 100;
 const RECENT_Q_MAX = 20;   // rolling window of seen question texts
+const LEVEL_UP_AT  = 15;   // correct answers needed to advance one level
+const MAX_LEVEL    = 50;   // maximum level cap
+const LEVEL_BONUS_AT        = 10;  // correct answers within a level to trigger bonus
+const LEVEL_BONUS_THRESHOLD = 12;  // reduced level-up threshold if bonus is passed
 
 // ══ STATE ═══════════════════════════════════
 const G = {
@@ -543,6 +593,10 @@ const G = {
     puzzleQueue:false, nextPuzzleAt:PUZZLE_EVERY,
     puzzleDeck:[],  // shuffled grade-specific puzzle deck (refilled when empty)
     recentQs:[],    // rolling list of recently seen question texts
+    level:1, correctThisLevel:0, startLevel:0,
+    levelUpThreshold:LEVEL_UP_AT,
+    bonusTriggeredThisLevel:false, isLevelBonus:false, levelBonusQueued:false,
+    paused:false,
 };
 
 // ══ SCREEN NAV ══════════════════════════════
@@ -558,23 +612,25 @@ function showScene(){
 function closeModals(){ document.querySelectorAll('.overlay').forEach(el=>el.classList.remove('show')); }
 function clearTimers(){ clearInterval(G.fuelTimer); clearInterval(G.sessionTimer); }
 function goWelcome(){ closeModals(); clearTimers(); showLobby('welcomeScreen'); }
-function goGrade()  { closeModals(); clearTimers(); showLobby('gradeScreen'); }
+function goGrade()  { closeModals(); clearTimers(); showLobby('gradeScreen'); updateGradeButtons(); }
 function endGame()  { closeModals(); clearTimers(); renderResults(); showLobby('resultsScreen'); sprayConfetti(); }
 
 // ══ LOBBY FLOW ══════════════════════════════
-function selectTime(mins){ G.sessionSecs=mins*60; showLobby('gradeScreen'); }
-function selectTimeSecs(secs){ G.sessionSecs=secs; showLobby('gradeScreen'); }
+function selectTime(mins){ G.sessionSecs=mins*60; showLobby('gradeScreen'); updateGradeButtons(); }
+function selectTimeSecs(secs){ G.sessionSecs=secs; showLobby('gradeScreen'); updateGradeButtons(); }
 function selectGrade(g){
     G.grade=g;
+    const savedLv=parseInt(localStorage.getItem('kg_bestlevel_'+g)||'1');
+    if(savedLv>1){ showLevelPicker(g); return; }
+    G.score=0; G.correct=0; G.wrong=0;
     const saved=localStorage.getItem('kg_avatar');
     if(saved==='vaana'||saved==='aaru'){
-        G.char=saved; G.score=0;G.correct=0;G.wrong=0;
+        G.char=saved;
         const r=document.getElementById('runner');
         r.classList.remove('vaana','aaru','custom'); r.classList.add(saved);
         beginSession();
     } else if(saved==='custom'){
-        G.char='custom'; G.score=0;G.correct=0;G.wrong=0;
-        applyCustomAvatar(); beginSession();
+        G.char='custom'; applyCustomAvatar(); beginSession();
     } else {
         showLobby('charScreen');
     }
@@ -603,6 +659,49 @@ function applyCustomAvatar(){
     if(torso) torso.style.background=color;
     if(armL)  armL.style.background=color;
     if(armR)  armR.style.background=color;
+}
+
+// ══ GRADE BUTTONS — show saved level ════════
+function updateGradeButtons(){
+    ['pre-k','kindergarten','1st','2nd','3rd','4th'].forEach(g=>{
+        const btn=document.getElementById('gbtn-'+g);
+        if(!btn) return;
+        const lv=parseInt(localStorage.getItem('kg_bestlevel_'+g)||'1');
+        let tag=btn.querySelector('.grade-lv');
+        if(!tag){ tag=document.createElement('span'); tag.className='grade-lv';
+            tag.style.cssText='font-size:.72em;opacity:.9;margin-top:3px;display:block;font-weight:800;'; btn.appendChild(tag); }
+        tag.textContent=lv>1?'LVL '+lv+' saved':'';
+    });
+}
+
+// ══ LEVEL PICKER ════════════════════════════
+let _lpMax=1, _lpCur=1;
+function showLevelPicker(g){
+    G.grade=g;
+    _lpMax=parseInt(localStorage.getItem('kg_bestlevel_'+g)||'1');
+    _lpCur=_lpMax;
+    document.getElementById('lpGrade').textContent=gradeLabel(g);
+    document.getElementById('lpBest').textContent='LVL '+_lpMax;
+    document.getElementById('lpNum').textContent=_lpCur;
+    showLobby('levelPickScreen');
+}
+function lpAdj(d){
+    _lpCur=Math.max(1,Math.min(_lpMax,_lpCur+d));
+    document.getElementById('lpNum').textContent=_lpCur;
+}
+function lpPlay(){
+    G.startLevel=_lpCur; G.score=0; G.correct=0; G.wrong=0;
+    const saved=localStorage.getItem('kg_avatar');
+    if(saved==='vaana'||saved==='aaru'){
+        G.char=saved;
+        document.getElementById('runner').classList.remove('vaana','aaru','custom');
+        document.getElementById('runner').classList.add(saved);
+        beginSession();
+    } else if(saved==='custom'){
+        G.char='custom'; applyCustomAvatar(); beginSession();
+    } else {
+        showLobby('charScreen');
+    }
 }
 
 // ══ SESSION ═════════════════════════════════
@@ -634,29 +733,40 @@ function shuffle(arr){
 }
 function startRun(){
     G.fuel=FUEL_START; G.answering=false;
+    G.level=G.startLevel>0?G.startLevel:parseInt(localStorage.getItem('kg_bestlevel_'+G.grade)||'1');
+    G.startLevel=0;
+    G.correctThisLevel=0; G.paused=false;
+    G.levelUpThreshold=LEVEL_UP_AT;
+    G.bonusTriggeredThisLevel=false; G.isLevelBonus=false; G.levelBonusQueued=false;
     G.puzzleQueue=false; G.nextPuzzleAt=PUZZLE_EVERY;
     G.puzzleDeck=shuffle([...(PUZZLES[G.grade]||PUZZLES['kindergarten'])]);
     G.recentQs=[];
     showScene();
     clearInterval(G.fuelTimer);
     G.fuelTimer=setInterval(tickFuel,1000);
-    renderHud(); loadQuestion();
+    renderHud(); updateLevelHUD(); loadQuestion();
+    if(G.level>1) setTimeout(()=>floatText('▶ Resuming LVL '+G.level,'#f59e0b'),400);
 }
 function restartRun(){ closeModals(); startRun(); }
 function pauseRun()  { clearInterval(G.fuelTimer); }
 function tickFuel(){
-    G.fuel=Math.max(0,G.fuel-1); renderFuel();
+    if(G.paused) return;
+    const base=1+(G.level-1)*0.05;   // Level 1: 1/s → Level 50: 3.45/s
+    const drain=base*(G.grade==='pre-k'?0.5:1);  // Pre-K drains at half speed
+    G.fuel=Math.max(0,G.fuel-drain); renderFuel();
     if(G.fuel===0){ clearInterval(G.fuelTimer); setTimeout(openGameOverModal,380); }
 }
 
 // ══ MODALS ══════════════════════════════════
 function openGameOverModal(){
+    window.speechSynthesis?.cancel();
     document.getElementById('goScore').textContent  =G.score;
     document.getElementById('goCorrect').textContent=G.correct;
     document.getElementById('goWrong').textContent  =G.wrong;
     document.getElementById('gameOverModal').classList.add('show');
 }
 function openBreakModal(){
+    window.speechSynthesis?.cancel();
     document.getElementById('bmScore').textContent  =G.score;
     document.getElementById('bmCorrect').textContent=G.correct;
     document.getElementById('bmWrong').textContent  =G.wrong;
@@ -689,8 +799,9 @@ function loadQuestion(){
     let q;
     if(G.puzzleQueue){
         G.puzzleQueue=false; q=nextPuzzle(); G.isPuzzle=true;
+        G.isLevelBonus=G.levelBonusQueued; G.levelBonusQueued=false;
     } else {
-        G.isPuzzle=false;
+        G.isPuzzle=false; G.isLevelBonus=false;
         // Retry up to 8 times to avoid showing a recently seen question
         // Key includes visual so counting questions with different counts are distinct
         for(let i=0;i<8;i++){
@@ -719,6 +830,7 @@ function loadQuestion(){
     const card=document.getElementById('qCard');
     card.classList.remove('out'); card.style.animation='none';
     void card.offsetWidth; card.style.animation='';
+    speakQuestion();
 }
 
 function pick(btn,selected,correct){
@@ -727,9 +839,29 @@ function pick(btn,selected,correct){
     document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
     if(String(selected)===String(correct)){
         btn.classList.add('right'); G.score+=10; G.correct++;
+        G.correctThisLevel++;
+        // Bonus puzzle passed — reduce level-up threshold from 20 to 15
+        if(G.isLevelBonus){
+            G.levelUpThreshold=LEVEL_BONUS_THRESHOLD;
+            floatText('⚡ Level Boost!','#f59e0b');
+        }
+        // Midpoint trigger: at 10 correct in this level, queue a level bonus puzzle
+        if(G.correctThisLevel===LEVEL_BONUS_AT && !G.bonusTriggeredThisLevel && !G.isLevelBonus){
+            G.bonusTriggeredThisLevel=true; G.levelBonusQueued=true; G.puzzleQueue=true;
+            showLevelBonusBanner();
+        }
+        // Level-up check using dynamic threshold (20 normal, 15 after bonus)
+        if(G.correctThisLevel>=G.levelUpThreshold){
+            G.correctThisLevel=0; G.bonusTriggeredThisLevel=false;
+            G.levelUpThreshold=LEVEL_UP_AT; G.isLevelBonus=false;
+            G.level=Math.min(G.level+1,MAX_LEVEL);
+            triggerLevelUp();
+        }
+        updateLevelHUD();
         const gain=G.isPuzzle?PUZZLE_FUEL:FUEL_CORRECT;
         G.fuel=Math.min(FUEL_MAX,G.fuel+gain); renderHud();
-        if(G.score>=G.nextPuzzleAt){ G.puzzleQueue=true; G.nextPuzzleAt+=PUZZLE_EVERY; showPuzzleBanner(); }
+        // Score-based puzzle: don't override a level bonus already queued
+        if(G.score>=G.nextPuzzleAt){ G.nextPuzzleAt+=PUZZLE_EVERY; if(!G.puzzleQueue){ G.puzzleQueue=true; showPuzzleBanner(); } }
         renderHudScore();
         doJump(); floatText(`+${gain}s ⚡`,'#11998e'); flashScreen('rgba(56,239,125,.38)');
     } else {
@@ -764,7 +896,41 @@ function flashScreen(color){
 }
 function showPuzzleBanner(){
     const b=document.getElementById('puzzleBanner');
+    b.textContent='🧩 Bonus Puzzle Unlocked!';
     b.style.display='block'; setTimeout(()=>{ b.style.display='none'; },2800);
+}
+function showLevelBonusBanner(){
+    const b=document.getElementById('puzzleBanner');
+    b.textContent='🌟 Halfway! Bonus Puzzle — Level up faster!';
+    b.style.display='block';
+    setTimeout(()=>{ b.style.display='none'; },2800);
+}
+function triggerLevelUp(){
+    G.paused=true;
+    // Persist immediately so progress is never lost mid-session
+    const lKey='kg_bestlevel_'+G.grade;
+    if(G.level>parseInt(localStorage.getItem(lKey)||'1')) localStorage.setItem(lKey,G.level);
+    const banner=document.getElementById('levelBanner');
+    banner.textContent='⭐ Level '+G.level+'!';
+    banner.classList.add('show');
+    flashScreen('rgba(245,158,11,.45)');
+    updateLevelHUD();
+    setTimeout(()=>{
+        banner.classList.remove('show');
+        G.paused=false;
+    },1800);
+}
+function updateLevelHUD(){
+    const badge=document.getElementById('levelBadge');
+    const boosted=G.levelUpThreshold<LEVEL_UP_AT;
+    const color=boosted?'#10b981':'#f59e0b';
+    badge.textContent='LVL '+G.level;
+    badge.style.background=color;
+    const remaining=Math.max(0,G.levelUpThreshold-G.correctThisLevel);
+    const pct=Math.min(100,(G.correctThisLevel/G.levelUpThreshold)*100);
+    const fill=document.getElementById('lvlFill');
+    fill.style.width=pct+'%'; fill.style.background=color;
+    document.getElementById('lvlLeft').textContent=remaining+' left';
 }
 
 // ══ RESULTS ═════════════════════════════════
@@ -782,6 +948,11 @@ function renderResults(){
     document.getElementById('resFinalScore').textContent=G.score;
     document.getElementById('resCorrect').textContent   =G.correct;
     document.getElementById('resWrong').textContent     =G.wrong;
+    document.getElementById('resLevel').textContent     ='🏆 Highest Level: '+G.level;
+    // persist best level per grade
+    const lKey='kg_bestlevel_'+G.grade;
+    const prev=parseInt(localStorage.getItem(lKey)||'1');
+    if(G.level>prev) localStorage.setItem(lKey,G.level);
 }
 function sprayConfetti(){
     const pool=['⭐','🌟','🎉','🎊','✨','🏆','🎈','🧩'];
@@ -792,6 +963,16 @@ function sprayConfetti(){
         el.style.animationDuration=(2+Math.random()*2.5)+'s';
         document.body.appendChild(el); setTimeout(()=>el.remove(),5000);
     },i*110);
+}
+
+// ══ TEXT-TO-SPEECH (Pre-K only) ══════════════
+function speakQuestion(){
+    if(G.grade!=='pre-k'||!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const txt=document.getElementById('qText').textContent;
+    const utt=new SpeechSynthesisUtterance(txt);
+    utt.rate=0.82; utt.pitch=1.1;
+    window.speechSynthesis.speak(utt);
 }
 
 // ══ HELPERS ═════════════════════════════════
