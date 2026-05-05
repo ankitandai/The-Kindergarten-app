@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Flag Quest 🚩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF4FF;--ink:#1E1B4B;--pink:#FF6B9D;--yellow:#FFD93D;--blue:#5C6BC0;--green:#95E06C;--orange:#FF9A3C;--purple:#B388EB;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{height:100%;}
+body{
+  min-height:100%;overflow-y:auto;font-family:'Fredoka',sans-serif;
+  background:var(--bg);color:var(--ink);
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;
+  padding-bottom:32px;
+  background-image:
+    radial-gradient(circle at 10% 20%,rgba(92,107,192,.22) 0%,transparent 38%),
+    radial-gradient(circle at 90% 80%,rgba(149,224,108,.18) 0%,transparent 42%),
+    radial-gradient(circle at 50% 50%,rgba(255,107,157,.10) 0%,transparent 52%);
+}
+.screen{width:100%;max-width:500px;display:none;flex-direction:column;align-items:center;padding:0 16px 16px;}
+.screen.active{display:flex;}
+
+/* topbar */
+.topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px;}
+.icon-btn{
+  background:white;border:3px solid var(--ink);border-radius:50%;
+  width:44px;height:44px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s;font-family:inherit;
+}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:20px;}
+.score-pill{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
+  padding:3px 16px;font-family:'Bowlby One',sans-serif;font-size:20px;
+  box-shadow:3px 3px 0 var(--ink);min-width:52px;text-align:center;
+}
+
+/* home */
+.home-globe{font-size:88px;line-height:1;margin:14px 0 8px;animation:bob 2.4s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.home-title{font-family:'Bowlby One',sans-serif;font-size:30px;text-align:center;color:var(--blue);text-shadow:3px 3px 0 var(--ink);}
+.home-sub{font-size:16px;font-weight:600;color:#999;text-align:center;margin:6px 0 18px;max-width:300px;}
+
+/* mode toggle */
+.mode-toggle{display:flex;gap:10px;margin-bottom:18px;width:100%;max-width:340px;}
+.mode-btn{
+  flex:1;padding:11px 10px;
+  font-family:'Fredoka',sans-serif;font-size:15px;font-weight:700;
+  border:3px solid var(--ink);border-radius:14px;background:white;
+  box-shadow:3px 3px 0 var(--ink);cursor:pointer;color:var(--ink);
+  transition:transform .1s,box-shadow .1s,background .15s;
+}
+.mode-btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink);}
+.mode-btn.active{background:var(--blue);color:white;}
+
+.play-btn{
+  width:100%;max-width:300px;padding:18px;
+  font-family:'Fredoka',sans-serif;font-size:22px;font-weight:700;
+  border:4px solid var(--ink);border-radius:20px;background:var(--green);
+  box-shadow:5px 5px 0 var(--ink);cursor:pointer;color:var(--ink);
+  transition:transform .1s,box-shadow .1s;
+}
+.play-btn:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+
+/* quiz layout */
+.cont-hint{font-size:15px;font-weight:700;color:#888;margin:2px 0 8px;display:flex;align-items:center;gap:5px;}
+
+/* flag display (flag→name mode) */
+.flag-display{
+  width:100%;max-width:280px;
+  background:white;border:4px solid var(--ink);border-radius:22px;
+  box-shadow:6px 6px 0 var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  padding:18px 18px;margin-bottom:4px;
+  min-height:160px;overflow:hidden;
+}
+.flag-display img{width:100%;height:auto;border-radius:6px;display:block;}
+
+/* name display (name→flag mode) */
+.name-display{
+  width:100%;max-width:280px;
+  background:white;border:4px solid var(--ink);border-radius:22px;
+  box-shadow:6px 6px 0 var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px 14px;margin-bottom:4px;
+  min-height:120px;text-align:center;
+}
+.name-display-text{font-family:'Bowlby One',sans-serif;font-size:26px;line-height:1.3;color:var(--ink);}
+
+/* hint zone */
+.hint-zone{width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0 2px;}
+.hint-btn{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 18px;font-family:'Fredoka',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s;color:var(--ink);
+}
+.hint-btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.hint-btn:disabled{opacity:.45;cursor:default;}
+.hint-bubble{
+  background:#fffde7;border:2px solid #f5c518;border-radius:14px;
+  padding:8px 14px;font-size:14px;font-weight:600;text-align:center;
+  max-width:320px;box-shadow:2px 2px 0 rgba(0,0,0,.1);
+  animation:fadeUp .3s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* options */
+.q-label{font-size:13px;font-weight:700;color:#bbb;margin:6px 0 6px;text-transform:uppercase;letter-spacing:.5px;}
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px;}
+
+/* name option buttons (flag→name) */
+.opt-name-btn{
+  border:4px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;padding:14px 8px;background:white;
+  font-family:'Fredoka',sans-serif;font-size:16px;font-weight:700;
+  color:var(--ink);text-align:center;line-height:1.3;
+  transition:transform .1s,box-shadow .1s;
+}
+.opt-name-btn:active:not([disabled]){transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.opt-name-btn.correct{background:var(--green)!important;border-color:var(--ink)!important;}
+.opt-name-btn.wrong{background:#ffb3b3!important;border-color:#e74c3c!important;}
+
+/* flag option buttons (name→flag) */
+.opt-flag-btn{
+  border:4px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;padding:10px 8px;background:white;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .1s,box-shadow .1s;
+  min-height:80px;overflow:hidden;
+}
+.opt-flag-btn img{width:100%;height:auto;border-radius:6px;display:block;}
+.opt-flag-btn:active:not([disabled]){transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.opt-flag-btn.correct{background:var(--green)!important;border-color:var(--ink)!important;}
+.opt-flag-btn.wrong{background:#ffb3b3!important;border-color:#e74c3c!important;}
+
+/* info panel */
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:88;display:none;cursor:pointer;}
+.panel-overlay.show{display:block;}
+.info-panel{
+  position:fixed;bottom:0;left:50%;
+  transform:translateX(-50%) translateY(102%);
+  width:100%;max-width:500px;
+  background:white;border-top:4px solid var(--ink);
+  border-radius:28px 28px 0 0;box-shadow:0 -6px 28px rgba(0,0,0,.18);
+  padding:10px 20px 32px;z-index:89;
+  transition:transform .45s cubic-bezier(.34,1.08,.64,1);
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.info-panel.show{transform:translateX(-50%) translateY(0);}
+.panel-handle{width:44px;height:5px;background:#ddd;border-radius:999px;margin-bottom:4px;}
+.panel-header{width:100%;display:flex;align-items:center;gap:14px;padding-bottom:10px;border-bottom:2px solid #f0f0f0;}
+.panel-flag{line-height:1;width:72px;flex-shrink:0;}
+.panel-flag img{width:72px;height:auto;border-radius:4px;display:block;}
+.panel-name{font-family:'Bowlby One',sans-serif;font-size:24px;line-height:1.1;}
+.panel-result{font-size:16px;font-weight:700;margin-top:3px;}
+.panel-result.ok{color:#27ae60;}
+.panel-result.bad{color:#e74c3c;}
+.facts-grid{width:100%;display:flex;flex-direction:column;gap:7px;}
+.fact-row{display:flex;align-items:center;gap:10px;background:#fafafa;border-radius:12px;padding:8px 12px;}
+.fact-icon{font-size:20px;width:26px;text-align:center;flex-shrink:0;}
+.fact-label{font-size:13px;font-weight:700;color:#aaa;width:58px;flex-shrink:0;}
+.fact-val{font-size:15px;font-weight:600;color:var(--ink);}
+.panel-known{
+  width:100%;background:linear-gradient(135deg,#f0f4ff,#fff0f5);
+  border:2px solid var(--blue);border-radius:14px;
+  padding:10px 14px;font-size:14px;font-weight:600;color:var(--ink);
+  text-align:center;line-height:1.5;
+}
+.next-btn{
+  width:100%;max-width:300px;padding:14px;
+  font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;
+  border:4px solid var(--ink);border-radius:16px;background:var(--green);
+  box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:var(--ink);
+  transition:transform .1s,box-shadow .1s;
+}
+.next-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+
+/* celebration */
+#celebEl{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:100;opacity:0;transition:opacity .25s;}
+#celebEl.show{opacity:1;}
+.celeb-em{font-size:90px;animation:popIn .35s cubic-bezier(.36,.07,.19,.97);}
+.celeb-tx{font-family:'Bowlby One',sans-serif;font-size:32px;color:var(--blue);text-shadow:3px 3px 0 var(--ink);margin-top:8px;}
+@keyframes popIn{0%{transform:scale(.3)rotate(-15deg)}70%{transform:scale(1.15)rotate(3deg)}100%{transform:scale(1)}}
+.confetti-piece{position:fixed;top:-10px;pointer-events:none;z-index:200;animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(110vh)rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="screen active" id="homeScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="window.location.href='index.html'">←</button>
+    <div class="topbar-title">Flag Quest</div>
+    <div style="width:44px"></div>
+  </div>
+  <div class="home-globe">🚩</div>
+  <div class="home-title">Flag Quest!</div>
+  <p class="home-sub">How well do you know the world's flags?</p>
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="modeFlag" onclick="setMode('flag')">🚩 Name the Country</button>
+    <button class="mode-btn" id="modeName" onclick="setMode('name')">🌍 Spot the Flag</button>
+  </div>
+  <button class="play-btn" onclick="startGame()">Let's Play! 🎯</button>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="quizScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="topbar-title">🚩 Flag Quest</div>
+    <div class="score-pill" id="scoreEl">0</div>
+  </div>
+  <div class="cont-hint" id="contHint"></div>
+  <div class="flag-display" id="flagDisplay"></div>
+  <div class="name-display" id="nameDisplay" style="display:none">
+    <div class="name-display-text" id="nameDisplayText"></div>
+  </div>
+  <div class="hint-zone">
+    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 Hint?</button>
+    <div class="hint-bubble" id="hintBubble" style="display:none"></div>
+  </div>
+  <div class="q-label" id="qLabel">Which country does this flag belong to?</div>
+  <div class="opts-grid" id="optsGrid"></div>
+</div>
+
+<!-- INFO PANEL -->
+<div class="panel-overlay" id="panelOverlay" onclick="nextRound()"></div>
+<div class="info-panel" id="infoPanel">
+  <div class="panel-handle"></div>
+  <div class="panel-header">
+    <div class="panel-flag" id="panelFlag">🏳️</div>
+    <div>
+      <div class="panel-name"   id="panelName">Country</div>
+      <div class="panel-result" id="panelResult">✅ Correct!</div>
+    </div>
+  </div>
+  <div class="facts-grid">
+    <div class="fact-row"><span class="fact-icon">🏛️</span><span class="fact-label">Capital</span><span class="fact-val" id="fCapital">—</span></div>
+    <div class="fact-row"><span class="fact-icon">🌍</span><span class="fact-label">Region</span><span class="fact-val" id="fRegion">—</span></div>
+    <div class="fact-row"><span class="fact-icon">🏆</span><span class="fact-label">Sport</span><span class="fact-val" id="fSport">—</span></div>
+  </div>
+  <div class="panel-known" id="panelKnown"></div>
+  <button class="next-btn" onclick="nextRound()">Next Flag →</button>
+</div>
+
+<!-- CELEBRATION -->
+<div id="celebEl">
+  <div class="celeb-em">🎉</div>
+  <div class="celeb-tx" id="celebTx">Brilliant!</div>
+</div>
+
+<script>
+const COUNTRIES=[
+  // Asia
+  {id:356,name:'India',flag:'🇮🇳',cont:'Asia',
+   hints:["My flag has three stripes: orange, white and green, with a blue spinning wheel called the Ashoka Chakra in the middle","I'm the world's most populous democracy — over a billion people call me home"],
+   capital:'New Delhi',sport:'🏏 Cricket',knownFor:'Taj Mahal, Yoga, Bollywood & Spicy food'},
+  {id:156,name:'China',flag:'🇨🇳',cont:'Asia',
+   hints:["My flag is bright red with one large star and four smaller stars in the top-left corner","I have the world's largest population and my official language is Mandarin Chinese"],
+   capital:'Beijing',sport:'🏓 Table Tennis',knownFor:'Great Wall, Giant Pandas, Noodles & Kung Fu'},
+  {id:392,name:'Japan',flag:'🇯🇵',cont:'Asia',
+   hints:["My flag is pure white with a red circle in the middle — it represents the rising sun","I'm a group of islands in the Pacific Ocean famous for sushi, anime and cherry blossoms"],
+   capital:'Tokyo',sport:'🥋 Judo & Sumo',knownFor:'Sushi, Anime, Cherry Blossoms & Mount Fuji'},
+  {id:643,name:'Russia',flag:'🇷🇺',cont:'Asia',
+   hints:["My flag has three equal horizontal stripes: white on top, blue in the middle and red at the bottom","I'm the largest country in the world, stretching from Europe all the way to the Pacific Ocean"],
+   capital:'Moscow',sport:'🏒 Ice Hockey',knownFor:'Matryoshka Dolls, Space Rockets, Ballet & Deep Snow'},
+  {id:144,name:'Sri Lanka',flag:'🇱🇰',cont:'Asia',
+   hints:["My flag features a golden lion holding a sword on a dark red background, with orange and green stripes on the left","I'm a beautiful teardrop-shaped island just south of India famous for tea"],
+   capital:'Colombo',sport:'🏏 Cricket',knownFor:'Ceylon Tea, Ancient Temples, Spices & Gems'},
+  {id:764,name:'Thailand',flag:'🇹🇭',cont:'Asia',
+   hints:["My flag has five horizontal stripes: red, white, blue (widest), white and red — the blue represents the monarchy","I'm known as the Land of Smiles, and my beautiful golden temples are everywhere"],
+   capital:'Bangkok',sport:'🥊 Muay Thai',knownFor:'Golden Temples, Elephants, Pad Thai & Beaches'},
+  {id:682,name:'Saudi Arabia',flag:'🇸🇦',cont:'Asia',
+   hints:["My flag is entirely green with white Arabic writing and a sword — green is a sacred colour in Islam","I'm the birthplace of Islam and home to the holy cities of Mecca and Medina"],
+   capital:'Riyadh',sport:'⚽ Football',knownFor:'Mecca, Arabian Camels, Oil & Sand Dunes'},
+  {id:364,name:'Iran',flag:'🇮🇷',cont:'Asia',
+   hints:["My flag has three equal horizontal bands of green, white and red, with a red emblem and script in the centre","I was once the mighty Persian Empire — one of the greatest empires in all of history"],
+   capital:'Tehran',sport:'🤼 Wrestling',knownFor:'Ancient Persia, Colourful Carpets & Pomegranates'},
+  {id:792,name:'Turkey',flag:'🇹🇷',cont:'Asia',
+   hints:["My flag is red with a white crescent moon and a white star — classic symbols of the Islamic world","I sit between two continents — part of me is in Europe, part in Asia"],
+   capital:'Ankara',sport:'🤼 Oil Wrestling',knownFor:'Baklava, Hagia Sophia & Hot Air Balloons'},
+  {id:524,name:'Nepal',flag:'🇳🇵',cont:'Asia',
+   hints:["I'm the ONLY country in the world with a non-rectangular flag — I have two stacked triangles!","Mount Everest, the highest point on Earth, rises on my border with China"],
+   capital:'Kathmandu',sport:'🏔️ Mountaineering',knownFor:'Mount Everest, Yaks, Sherpas & Prayer Flags'},
+  {id:704,name:'Vietnam',flag:'🇻🇳',cont:'Asia',
+   hints:["My flag is bright red with a large yellow five-pointed star in the centre","My country is long and thin like the letter S, stretching down the eastern edge of mainland Southeast Asia"],
+   capital:'Hanoi',sport:'⚽ Football',knownFor:'Pho Noodles, Ha Long Bay, Rice Fields & Ao Dai'},
+  {id:50,name:'Bangladesh',flag:'🇧🇩',cont:'Asia',
+   hints:["My flag is dark green with a large red circle slightly to the left of centre","I'm one of the most densely populated countries on Earth, sitting in the Bay of Bengal delta"],
+   capital:'Dhaka',sport:'🏏 Cricket',knownFor:'Bengal Tigers, Jute, Rickshaws & the Ganges Delta'},
+  {id:586,name:'Pakistan',flag:'🇵🇰',cont:'Asia',
+   hints:["My flag is dark green with a white vertical stripe on the left and a white crescent and star on the right","I share a border with India, Afghanistan, Iran and China — I'm right in the heart of South Asia"],
+   capital:'Islamabad',sport:'🏏 Cricket',knownFor:'K2 Mountain, Ancient Indus Valley, Truck Art & Chai'},
+  {id:104,name:'Myanmar',flag:'🇲🇲',cont:'Asia',
+   hints:["My flag has three equal horizontal stripes: yellow, green and red, with a large white star in the centre","I'm in Southeast Asia bordering India, China, Thailand and others, famous for ancient Buddhist temples"],
+   capital:'Naypyidaw',sport:'⚽ Football',knownFor:'Shwedagon Pagoda, Ancient Bagan Temples, Longyi Clothing & Irrawaddy River'},
+  // Europe
+  {id:380,name:'Italy',flag:'🇮🇹',cont:'Europe',
+   hints:["My flag has three equal vertical stripes: green, white and red from left to right","My boot-shaped country stretches into the Mediterranean Sea — home to the ancient Roman Empire"],
+   capital:'Rome',sport:'⚽ Football',knownFor:'Pizza, Pasta, the Colosseum & High Fashion'},
+  {id:826,name:'United Kingdom',flag:'🇬🇧',cont:'Europe',
+   hints:["My flag is called the Union Jack — it combines the crosses of England, Scotland and Ireland in red, white and blue","I'm a group of islands off northwest Europe with one of the world's most famous royal families"],
+   capital:'London',sport:'⚽ Football & 🏏 Cricket',knownFor:'Big Ben, Harry Potter, The Beatles & Tea'},
+  {id:250,name:'France',flag:'🇫🇷',cont:'Europe',
+   hints:["My flag has three equal vertical stripes: blue, white and red — called the Tricolore","My capital has the most visited landmark in the world — the Eiffel Tower"],
+   capital:'Paris',sport:'⚽ Football',knownFor:'Eiffel Tower, Croissants, Fine Wines & Fashion'},
+  {id:276,name:'Germany',flag:'🇩🇪',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: black on top, red in the middle and gold at the bottom","I'm in the heart of Europe, famous for fast cars, fairy-tale castles and excellent engineering"],
+   capital:'Berlin',sport:'⚽ Football',knownFor:'Sports Cars, Castles, Sausages & Pretzel Bread'},
+  {id:724,name:'Spain',flag:'🇪🇸',cont:'Europe',
+   hints:["My flag has three horizontal stripes: red, wide yellow (with a coat of arms), and red","I'm on a peninsula in southwest Europe, home to Real Madrid and FC Barcelona — two of football's greatest clubs"],
+   capital:'Madrid',sport:'⚽ Football',knownFor:'Flamenco Dancing, Paella, Beaches & FC Barcelona'},
+  {id:752,name:'Sweden',flag:'🇸🇪',cont:'Europe',
+   hints:["My flag is blue with a yellow Nordic cross — the cross extends to the edges of the flag","I'm a long Scandinavian country where you can see the Northern Lights in winter"],
+   capital:'Stockholm',sport:'⛷️ Skiing',knownFor:'IKEA, ABBA, Vikings, Aurora Borealis & Meatballs'},
+  {id:300,name:'Greece',flag:'🇬🇷',cont:'Europe',
+   hints:["My flag has nine horizontal stripes of blue and white alternating, with a blue square and white cross in the top-left corner","I invented the Olympic Games thousands of years ago — my ancient ruins are world famous"],
+   capital:'Athens',sport:'🏛️ The Olympics',knownFor:'Acropolis, Greek Gods, Olive Oil & Feta Cheese'},
+  {id:616,name:'Poland',flag:'🇵🇱',cont:'Europe',
+   hints:["My flag is very simple: two equal horizontal stripes — white on top and red on the bottom","I'm in central Europe and my ancient city of Kraków is one of Europe's most beautiful capitals"],
+   capital:'Warsaw',sport:'⚽ Football',knownFor:'Pierogi Dumplings, Amber Jewellery & Chopin Music'},
+  {id:620,name:'Portugal',flag:'🇵🇹',cont:'Europe',
+   hints:["My flag has a vertical green stripe on the left and a larger red section on the right, with a complex coat of arms in the centre","I'm on the far western edge of Europe — my explorers were the first Europeans to reach India by sea"],
+   capital:'Lisbon',sport:'⚽ Football',knownFor:'Cristiano Ronaldo, Custard Tarts, Fado Music & Cork'},
+  {id:578,name:'Norway',flag:'🇳🇴',cont:'Europe',
+   hints:["My flag is red with a blue Nordic cross outlined in white","I'm a long narrow Scandinavian country with stunning fjords and some of the world's best salmon"],
+   capital:'Oslo',sport:'⛷️ Cross-Country Skiing',knownFor:'Fjords, Northern Lights, Vikings, Salmon & Midnight Sun'},
+  {id:208,name:'Denmark',flag:'🇩🇰',cont:'Europe',
+   hints:["My flag is called the Dannebrog — it's one of the world's oldest flags! It's red with a white Nordic cross","LEGO bricks — the world's favourite building toy — were invented in my country"],
+   capital:'Copenhagen',sport:'⚽ Football & 🤾 Handball',knownFor:'LEGO, Hans Christian Andersen Fairy Tales, Vikings & Hygge'},
+  {id:246,name:'Finland',flag:'🇫🇮',cont:'Europe',
+   hints:["My flag is white with a blue Nordic cross — the blue represents my thousands of beautiful lakes","Santa Claus's official hometown is in my northern region called Lapland"],
+   capital:'Helsinki',sport:'🏒 Ice Hockey',knownFor:'Santa Claus in Lapland, Northern Lights, Saunas & Reindeer'},
+  {id:372,name:'Ireland',flag:'🇮🇪',cont:'Europe',
+   hints:["My flag has three equal vertical stripes: green on the left, white in the middle and orange on the right","I'm known as the Emerald Isle — my rolling green hills are famous around the world"],
+   capital:'Dublin',sport:'🏑 Hurling & Gaelic Football',knownFor:'Rolling Green Hills, Ancient Castles, Celtic Music & Saint Patrick\'s Day'},
+  {id:528,name:'Netherlands',flag:'🇳🇱',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: red on top, white in the middle and blue at the bottom","Much of my flat land sits below sea level — I use windmills and dykes to hold back the sea!"],
+   capital:'Amsterdam',sport:'⚽ Football & 🚴 Cycling',knownFor:'Tulips, Windmills, Gouda Cheese, Van Gogh & Canal Cities'},
+  {id:756,name:'Switzerland',flag:'🇨🇭',cont:'Europe',
+   hints:["My flag is a bold red square with a white cross in the centre — one of only two square country flags!","I'm famous for chocolate, precision watches and being neutral in wars for over 500 years"],
+   capital:'Bern',sport:'⛷️ Alpine Skiing',knownFor:'Swiss Chocolate, Luxury Watches, Alps, Roger Federer & Neutrality'},
+  {id:40,name:'Austria',flag:'🇦🇹',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: red, white and red","The famous composer Mozart was born in my beautiful city of Salzburg"],
+   capital:'Vienna',sport:'⛷️ Alpine Skiing',knownFor:'Mozart, Classical Music, Alpine Skiing, Schnitzel & Sachertorte Cake'},
+  {id:804,name:'Ukraine',flag:'🇺🇦',cont:'Europe',
+   hints:["My flag has just two equal horizontal stripes: sky blue on top and golden yellow on the bottom — representing sky over golden wheat fields","I'm the largest country located entirely within Europe, called the breadbasket of Europe"],
+   capital:'Kyiv',sport:'⚽ Football',knownFor:'Vast Sunflower Fields, Borscht Soup, Vyshyvanka Embroidery & Wheat'},
+  {id:642,name:'Romania',flag:'🇷🇴',cont:'Europe',
+   hints:["My flag has three equal vertical stripes: blue on the left, yellow in the middle and red on the right","Transylvania — the legendary home of Count Dracula's castle — is deep inside my borders"],
+   capital:'Bucharest',sport:'⚽ Football & 🤸 Gymnastics',knownFor:'Dracula\'s Transylvania, Nadia Comaneci, Painted Monasteries & Danube Delta'},
+  {id:100,name:'Bulgaria',flag:'🇧🇬',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: white on top, green in the middle and red at the bottom","I produce most of the world's rose oil — the precious ingredient in fine perfumes"],
+   capital:'Sofia',sport:'⚽ Football & 🏋️ Weightlifting',knownFor:'Rose Oil Perfume, Black Sea Beaches, Yoghurt & Ancient Thracian History'},
+  {id:191,name:'Croatia',flag:'🇭🇷',cont:'Europe',
+   hints:["My flag has three horizontal stripes: red, white and blue, with a distinctive red-and-white chequered coat of arms in the centre","My Adriatic coastline is dotted with over a thousand beautiful islands"],
+   capital:'Zagreb',sport:'⚽ Football',knownFor:'Dubrovnik (Game of Thrones City), Adriatic Islands, Plitvice Lakes & Neckties'},
+  {id:348,name:'Hungary',flag:'🇭🇺',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: red on top, white in the middle and green at the bottom","The Rubik's Cube — the world's most popular puzzle toy — was invented by my professor Ernő Rubik"],
+   capital:'Budapest',sport:'⚽ Football & 🏊 Water Polo',knownFor:'Rubik\'s Cube, Thermal Baths, Goulash Stew & Budapest Bridges'},
+  {id:352,name:'Iceland',flag:'🇮🇸',cont:'Europe',
+   hints:["My flag is blue with a red Nordic cross outlined in white","I'm an island nation in the North Atlantic with geysers, volcanoes and the Northern Lights"],
+   capital:'Reykjavik',sport:'🤾 Handball',knownFor:'Geysers, Volcanoes, Northern Lights, Puffins & Midnight Sun'},
+  {id:56,name:'Belgium',flag:'🇧🇪',cont:'Europe',
+   hints:["My flag has three equal vertical stripes: black on the left, yellow in the middle and red on the right","My capital Brussels is the headquarters of the European Union"],
+   capital:'Brussels',sport:'⚽ Football & 🚴 Cycling',knownFor:'Belgian Chocolate, Waffles, Tintin Comics & French Fries'},
+  // Africa
+  {id:818,name:'Egypt',flag:'🇪🇬',cont:'Africa',
+   hints:["My flag has three equal horizontal stripes: red, white and black, with a golden Eagle of Saladin in the centre","The Great Pyramids and the Sphinx have stood in my desert for 4,500 years"],
+   capital:'Cairo',sport:'⚽ Football',knownFor:'Pyramids, Pharaohs, Mummies & the Nile River'},
+  {id:710,name:'South Africa',flag:'🇿🇦',cont:'Africa',
+   hints:["My flag is one of the most colourful in the world — it has six colours: red, green, blue, yellow, black and white, forming a Y-shape","I'm right at the southern tip of Africa and I actually have three capital cities!"],
+   capital:'Pretoria',sport:'🏉 Rugby',knownFor:'Safaris, Diamonds, Nelson Mandela & Cape Town'},
+  {id:566,name:'Nigeria',flag:'🇳🇬',cont:'Africa',
+   hints:["My flag has two equal vertical green stripes on the outside and a white stripe in the middle","I have more people living in me than any other country in Africa — over 200 million!"],
+   capital:'Abuja',sport:'⚽ Football',knownFor:'Nollywood Movies, Jollof Rice & Afrobeats Music'},
+  {id:231,name:'Ethiopia',flag:'🇪🇹',cont:'Africa',
+   hints:["My flag has three equal horizontal stripes: green, yellow and red, with a blue circle and yellow star in the centre","Coffee was first discovered in my forests — I gave the whole world coffee!"],
+   capital:'Addis Ababa',sport:'🏃 Long-Distance Running',knownFor:'The Birthplace of Coffee, Marathon Champions & Rock Churches'},
+  {id:404,name:'Kenya',flag:'🇰🇪',cont:'Africa',
+   hints:["My flag has three horizontal stripes of black, red (with thin white borders) and green, with a Maasai shield and spears in the centre","My athletes are among the fastest long-distance runners in the world"],
+   capital:'Nairobi',sport:'🏃 Athletics',knownFor:'Masai Mara Safari, World-Class Runners & Flamingo Lakes'},
+  {id:504,name:'Morocco',flag:'🇲🇦',cont:'Africa',
+   hints:["My flag is red with a green five-pointed star (pentagram) in the centre","I'm the African country closest to Europe — only 14 km across the sea from Spain"],
+   capital:'Rabat',sport:'⚽ Football',knownFor:'Sahara Desert, Tagine Stew, Colourful Souks & Argan Oil'},
+  {id:288,name:'Ghana',flag:'🇬🇭',cont:'Africa',
+   hints:["My flag has three equal horizontal stripes: red, gold and green, with a black five-pointed star in the centre — the first African flag with a black star!","I was the first sub-Saharan country in Africa to gain independence from colonial rule"],
+   capital:'Accra',sport:'⚽ Football',knownFor:'Kente Cloth, Drumming, Chocolate (Cocoa) & First Independent African Nation'},
+  {id:716,name:'Zimbabwe',flag:'🇿🇼',cont:'Africa',
+   hints:["My flag has seven horizontal stripes of green, yellow, red (repeated) with a black triangle on the left containing a white triangle with a Zimbabwe Bird","My ancient stone city ruins called Great Zimbabwe gave my country its name"],
+   capital:'Harare',sport:'🏏 Cricket & ⚽ Football',knownFor:'Victoria Falls, Great Zimbabwe Ruins, Baobab Trees & Wildlife'},
+  // Americas
+  {id:840,name:'United States',flag:'🇺🇸',cont:'N. America',
+   hints:["My flag has 13 red and white horizontal stripes and 50 white stars on a blue background in the top-left corner — one star for each state","I'm the world's most powerful nation with Hollywood, NASA and the Statue of Liberty"],
+   capital:'Washington D.C.',sport:'🏈 American Football',knownFor:'Hollywood, NASA, Burgers, Jazz & the Statue of Liberty'},
+  {id:124,name:'Canada',flag:'🇨🇦',cont:'N. America',
+   hints:["My flag is red on both sides with a white square in the centre containing a red maple leaf","I'm the second-largest country in the world and I produce most of the world's maple syrup"],
+   capital:'Ottawa',sport:'🏒 Ice Hockey',knownFor:'Maple Syrup, Ice Hockey, Niagara Falls & Polar Bears'},
+  {id:484,name:'Mexico',flag:'🇲🇽',cont:'N. America',
+   hints:["My flag has three equal vertical stripes: green, white and red, with a detailed coat of arms featuring an eagle eating a snake on a cactus in the white centre","Ancient Aztec and Maya civilisations built their great pyramids inside my borders"],
+   capital:'Mexico City',sport:'⚽ Football',knownFor:'Tacos, Aztec Pyramids, Mariachi Music & Día de Muertos Festival'},
+  {id:76,name:'Brazil',flag:'🇧🇷',cont:'S. America',
+   hints:["My flag is green with a large yellow diamond shape in the centre, and inside that is a blue globe with stars and a white banner","I'm the largest country in South America — the Amazon Rainforest covers much of me"],
+   capital:'Brasília',sport:'⚽ Football',knownFor:'Amazon Rainforest, Carnival, Samba Dancing & Football'},
+  {id:32,name:'Argentina',flag:'🇦🇷',cont:'S. America',
+   hints:["My flag has three equal horizontal stripes: light blue, white (with a golden Sun of May in the centre) and light blue","Lionel Messi — the famous footballer — was born in my city of Rosario"],
+   capital:'Buenos Aires',sport:'⚽ Football',knownFor:'Tango Dancing, Lionel Messi, Steak & Patagonia'},
+  {id:152,name:'Chile',flag:'🇨🇱',cont:'S. America',
+   hints:["My flag has two horizontal halves: white on top and red on the bottom, with a blue square in the top-left corner containing a white five-pointed star","My country is incredibly long and thin — I stretch over 4,300 km from north to south!"],
+   capital:'Santiago',sport:'⚽ Football & 🎾 Tennis',knownFor:'Atacama Desert, Andes Mountains, Wine & the Longest Country'},
+  {id:170,name:'Colombia',flag:'🇨🇴',cont:'S. America',
+   hints:["My flag has three unequal horizontal stripes: yellow (widest, at the top), blue and red","I'm the only country in South America with coastlines on BOTH the Pacific Ocean and the Caribbean Sea"],
+   capital:'Bogotá',sport:'⚽ Football & 🚴 Cycling',knownFor:'World-Famous Coffee, Emeralds, Shakira & Cycling Champions'},
+  {id:604,name:'Peru',flag:'🇵🇪',cont:'S. America',
+   hints:["My flag has three equal vertical stripes: red, white and red","The ancient Inca built their magnificent city of Machu Picchu high in my Andes mountains"],
+   capital:'Lima',sport:'⚽ Football',knownFor:'Machu Picchu, Inca Empire, Birthplace of the Potato, Llamas & Amazon'},
+  // Oceania
+  {id:36,name:'Australia',flag:'🇦🇺',cont:'Oceania',
+   hints:["My flag is blue with the Union Jack in the top-left corner, a large seven-pointed star below it, and five stars of the Southern Cross on the right","I'm both a continent AND a country — the only one in the entire world!"],
+   capital:'Canberra',sport:'🏏 Cricket & 🏉 Rugby',knownFor:'Kangaroos, Great Barrier Reef, Sydney Opera House & Surfing'},
+  {id:554,name:'New Zealand',flag:'🇳🇿',cont:'Oceania',
+   hints:["My flag is blue with the Union Jack in the top-left corner and four red stars with white borders representing the Southern Cross on the right","The entire Lord of the Rings film trilogy was shot inside my beautiful borders"],
+   capital:'Wellington',sport:'🏉 Rugby',knownFor:'Lord of the Rings, All Blacks Rugby, Kiwi Birds & Bungee Jumping'},
+  // Caribbean
+  {id:192,name:'Cuba',flag:'🇨🇺',cont:'Caribbean',
+   hints:["My flag has five equal horizontal stripes alternating blue and white, with a red triangle on the left containing a white five-pointed star","I'm the largest island in the Caribbean Sea, famous for salsa music and classic 1950s cars"],
+   capital:'Havana',sport:'⚾ Baseball & 🥊 Boxing',knownFor:'Classic 1950s Cars, Salsa Music, Cigars & Revolution History'},
+  {id:388,name:'Jamaica',flag:'🇯🇲',cont:'Caribbean',
+   hints:["My flag has a gold diagonal cross (saltire) dividing it into four triangles — two black (top and bottom) and two green (left and right)","I'm the birthplace of reggae music and Bob Marley, and my sprinters have dominated the world!"],
+   capital:'Kingston',sport:'🏃 Athletics & 🏏 Cricket',knownFor:'Reggae Music, Bob Marley, Usain Bolt, Jerk Chicken & Blue Mountains Coffee'},
+  // Asia (new)
+  {id:410,name:'South Korea',flag:'🇰🇷',cont:'Asia',
+   hints:["My flag is white with a red and blue Taeguk symbol in the centre — like a yin-yang — surrounded by four black trigrams in the corners","I'm the birthplace of K-pop and taekwondo, and I made Samsung phones and Hyundai cars"],
+   capital:'Seoul',sport:'🥋 Taekwondo',knownFor:'K-pop, K-dramas, Samsung, Taekwondo & Kimchi'},
+  {id:360,name:'Indonesia',flag:'🇮🇩',cont:'Asia',
+   hints:["My flag is very simple: two equal horizontal stripes — red on top and white on the bottom","I'm the world's largest archipelago with over 17,000 islands and the 4th most populated country on Earth"],
+   capital:'Jakarta',sport:'🏸 Badminton',knownFor:'Bali, Komodo Dragons, Batik Fabric, Volcanoes & Orangutans'},
+  {id:608,name:'Philippines',flag:'🇵🇭',cont:'Asia',
+   hints:["My flag has a blue stripe on top and red stripe on the bottom, with a white triangle on the left containing a yellow sun and three stars","I'm an archipelago of over 7,000 islands in Southeast Asia — I was named after King Philip II of Spain"],
+   capital:'Manila',sport:'🥊 Boxing',knownFor:'Beautiful Beaches, Rice Terraces, Jeepneys & Adobo Cooking'},
+  {id:458,name:'Malaysia',flag:'🇲🇾',cont:'Asia',
+   hints:["My flag has 14 red and white alternating horizontal stripes, with a blue square in the top-left containing a crescent moon and a 14-pointed star","My capital has the Petronas Twin Towers — they were once the tallest buildings in the entire world!"],
+   capital:'Kuala Lumpur',sport:'🏸 Badminton',knownFor:'Petronas Towers, Rainforests, Durian Fruit & Nasi Lemak'},
+  {id:702,name:'Singapore',flag:'🇸🇬',cont:'Asia',
+   hints:["My flag is half red on top and half white on the bottom, with a white crescent moon and five white stars on the red half","I'm one of the world's smallest countries but also one of the richest — a tiny city-state on an island in Southeast Asia"],
+   capital:'Singapore City',sport:'🏸 Badminton & 🏊 Swimming',knownFor:'Merlion, Hawker Food, Gardens by the Bay & Changi Airport'},
+  {id:784,name:'United Arab Emirates',flag:'🇦🇪',cont:'Asia',
+   hints:["My flag has three equal horizontal stripes of green, white and black, with a vertical red stripe on the left side","My city of Dubai has the world's tallest building — the Burj Khalifa — and even indoor ski slopes built in the desert!"],
+   capital:'Abu Dhabi',sport:'⚽ Football & 🏇 Horse Racing',knownFor:'Burj Khalifa, Dubai, Oil, Arabian Desert & Luxury Shopping'},
+  {id:376,name:'Israel',flag:'🇮🇱',cont:'Asia',
+   hints:["My flag is white with two horizontal blue stripes — like a prayer shawl — and a blue Star of David in the centre","I'm a small country in the Middle East with holy sites sacred to Judaism, Christianity and Islam"],
+   capital:'Jerusalem',sport:'⚽ Football',knownFor:'Jerusalem, Dead Sea, Ancient History & Innovation (the Start-up Nation)'},
+  {id:398,name:'Kazakhstan',flag:'🇰🇿',cont:'Asia',
+   hints:["My flag is sky blue with a golden sun and a soaring golden eagle on the left, and a traditional ornamental stripe on the right","I'm the world's largest landlocked country — no sea borders anywhere — sitting in the heart of Central Asia"],
+   capital:'Astana',sport:'🥊 Boxing & 🏋️ Weightlifting',knownFor:'Vast Steppes, Nomadic Heritage, Baikonur Space Launch Site & Apples'},
+  {id:496,name:'Mongolia',flag:'🇲🇳',cont:'Asia',
+   hints:["My flag has three equal vertical stripes: red, blue and red, with a golden Soyombo symbol on the left red stripe","Genghis Khan — the greatest conqueror in all of history — built his vast empire from my grasslands"],
+   capital:'Ulaanbaatar',sport:'🏇 Horse Racing & 🤼 Wrestling',knownFor:'Genghis Khan, Gobi Desert, Nomadic Yurts & Wild Horses'},
+  {id:368,name:'Iraq',flag:'🇮🇶',cont:'Asia',
+   hints:["My flag has three equal horizontal stripes: red, white and black, with green Arabic writing in the white centre","Two of the world's earliest civilisations — Sumeria and Babylon — flourished between my two great rivers: the Tigris and Euphrates"],
+   capital:'Baghdad',sport:'⚽ Football',knownFor:'Ancient Mesopotamia, Babylon, Tigris & Euphrates Rivers & Dates'},
+  // Europe (new)
+  {id:203,name:'Czech Republic',flag:'🇨🇿',cont:'Europe',
+   hints:["My flag has two horizontal bands — white on top and red on the bottom — with a blue triangle pointing inward on the left side","My capital Prague is one of Europe's most beautiful medieval cities, known as the City of a Hundred Spires"],
+   capital:'Prague',sport:'🏒 Ice Hockey',knownFor:'Prague Old Town, Czech Beer, Bohemian Crystal & Franz Kafka'},
+  {id:688,name:'Serbia',flag:'🇷🇸',cont:'Europe',
+   hints:["My flag has three horizontal stripes of red, blue and white, with a small coat of arms featuring a golden eagle on the left side","Tennis star Novak Djokovic — one of the greatest players ever — was born in my capital city"],
+   capital:'Belgrade',sport:'🎾 Tennis & ⚽ Football',knownFor:'Novak Djokovic, Belgrade Fortress, Rakija Brandy & EXIT Music Festival'},
+  {id:703,name:'Slovakia',flag:'🇸🇰',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: white, blue and red, with a coat of arms showing a white double cross on three hills","I'm a small landlocked country in central Europe, famous for beautiful mountain castles and the Tatra Mountains"],
+   capital:'Bratislava',sport:'🏒 Ice Hockey',knownFor:'Tatra Mountains, Beautiful Castles, Bryndzové Halušky Dumplings & Ice Hockey'},
+  {id:705,name:'Slovenia',flag:'🇸🇮',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: white, blue and red, with a coat of arms showing three mountain peaks and a blue wavy river","I'm one of the greenest countries in Europe — over 60% of my land is covered in forest!"],
+   capital:'Ljubljana',sport:'⛷️ Skiing & 🧗 Rock Climbing',knownFor:'Lake Bled, Postojna Cave, Alpine Mountains & Pristine Green Forests'},
+  {id:233,name:'Estonia',flag:'🇪🇪',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: blue on top, black in the middle and white at the bottom","I'm one of the most digitally advanced countries in the world — you can vote, pay taxes and even start a company online here!"],
+   capital:'Tallinn',sport:'🎿 Cross-Country Skiing',knownFor:'Tallinn Medieval Old Town, Digital Society, Song Festivals & Baltic Amber'},
+  {id:428,name:'Latvia',flag:'🇱🇻',cont:'Europe',
+   hints:["My flag is one of the oldest in the world — it has a very dark carmine-red stripe, a white stripe and another dark red stripe","I'm a small Baltic country famous for beautiful amber found washed up along my shores"],
+   capital:'Riga',sport:'🏒 Ice Hockey',knownFor:'Riga Art Nouveau Architecture, Baltic Amber, Song Festivals & Dark Rye Bread'},
+  {id:440,name:'Lithuania',flag:'🇱🇹',cont:'Europe',
+   hints:["My flag has three equal horizontal stripes: yellow on top, green in the middle and red at the bottom","I'm the largest of the three Baltic states and my famous Hill of Crosses is a pilgrimage site with over 100,000 crosses"],
+   capital:'Vilnius',sport:'🏀 Basketball',knownFor:'Vilnius Old Town, Basketball, Hill of Crosses & Baltic Amber'},
+  {id:442,name:'Luxembourg',flag:'🇱🇺',cont:'Europe',
+   hints:["My flag has three horizontal stripes of red, white and pale blue — it looks like the Netherlands flag but the blue is much lighter","I'm one of the world's smallest countries but also one of the wealthiest — a tiny grand duchy in the heart of Western Europe"],
+   capital:'Luxembourg City',sport:'🚴 Cycling',knownFor:'Fairy-tale Castles, Financial Centre, Moselle Valley Wines & Being Tiny but Rich'},
+  {id:112,name:'Belarus',flag:'🇧🇾',cont:'Europe',
+   hints:["My flag has two main horizontal stripes — red on top and green on the bottom — with a white and red ornamental stripe on the left side","I'm a landlocked country in Eastern Europe, home to one of the last primeval forests in Europe: the Białowieża Forest"],
+   capital:'Minsk',sport:'🏒 Ice Hockey & 🎿 Biathlon',knownFor:'Mir Castle, Białowieża Primeval Forest, Potatoes & Traditional Embroidery'},
+  {id:196,name:'Cyprus',flag:'🇨🇾',cont:'Europe',
+   hints:["My flag is white with an orange-copper map of the island in the centre and two green olive branches below it — one of only a few flags with a map of itself!","I'm a sunny island in the eastern Mediterranean, said to be the birthplace of the goddess Aphrodite"],
+   capital:'Nicosia',sport:'⚽ Football',knownFor:'Birthplace of Aphrodite, Ancient Ruins, Halloumi Cheese & Sunny Mediterranean Beaches'},
+  // Africa (new)
+  {id:834,name:'Tanzania',flag:'🇹🇿',cont:'Africa',
+   hints:["My flag has a diagonal black stripe with gold borders going from bottom-left to top-right, dividing it into a green triangle and a blue triangle","I'm home to Mount Kilimanjaro — the highest peak in all of Africa — and the Serengeti's Great Animal Migration"],
+   capital:'Dodoma',sport:'🏃 Athletics',knownFor:'Mount Kilimanjaro, Serengeti Migration, Zanzibar Beaches & Maasai People'},
+  {id:800,name:'Uganda',flag:'🇺🇬',cont:'Africa',
+   hints:["My flag has six horizontal stripes alternating black, yellow and red (twice), with a white circle in the centre containing a Grey Crowned Crane","I'm home to nearly half of all the world's mountain gorillas — you can meet them face-to-face in my misty forests!"],
+   capital:'Kampala',sport:'⚽ Football & 🏃 Athletics',knownFor:'Mountain Gorillas, Source of the Nile, Pearl of Africa & Lake Victoria'},
+  {id:686,name:'Senegal',flag:'🇸🇳',cont:'Africa',
+   hints:["My flag has three equal vertical stripes: green, yellow and red, with a green five-pointed star in the yellow centre","I'm the westernmost country on the African mainland — the sun sets over the Atlantic Ocean from my shores"],
+   capital:'Dakar',sport:'🤼 Wrestling & ⚽ Football',knownFor:'Dakar Rally, Traditional Wrestling, Thiéboudienne Rice Dish & Teranga Hospitality'},
+  {id:384,name:'Ivory Coast',flag:'🇨🇮',cont:'Africa',
+   hints:["My flag has three equal vertical stripes: orange, white and green — it looks exactly like the Irish flag but flipped left to right!","I'm the world's largest producer of cocoa beans — which means I help make most of the world's chocolate!"],
+   capital:'Yamoussoukro',sport:'⚽ Football',knownFor:"World's Biggest Cocoa Producer, Didier Drogba, Colourful Masks & Abidjan Lagoon City"},
+  {id:120,name:'Cameroon',flag:'🇨🇲',cont:'Africa',
+   hints:["My flag has three equal vertical stripes: green, red and yellow, with a yellow five-pointed star in the red centre","I'm called Africa in Miniature because I have almost every type of landscape on the continent — rainforest, savannah, mountains and beach"],
+   capital:'Yaoundé',sport:'⚽ Football',knownFor:'Africa in Miniature, Indomitable Lions Football Team, Diverse Landscapes & Mount Cameroon'},
+  {id:12,name:'Algeria',flag:'🇩🇿',cont:'Africa',
+   hints:["My flag has two equal vertical halves: green on the left and white on the right, with a red crescent moon and star in the centre","I'm the largest country in Africa — a huge portion of me is covered by the Sahara Desert"],
+   capital:'Algiers',sport:'⚽ Football',knownFor:'Sahara Desert, Ancient Roman Ruins, Couscous & Casbah of Algiers'},
+  {id:788,name:'Tunisia',flag:'🇹🇳',cont:'Africa',
+   hints:["My flag is red with a white circle in the centre containing a red crescent moon and a red star","I'm the northernmost country in Africa — just across the sea from Italy — and the ancient city of Carthage was built here"],
+   capital:'Tunis',sport:'⚽ Football',knownFor:'Carthage Ruins, Sahara Desert, Harissa Spice, Medina Markets & Star Wars Film Locations'},
+  {id:24,name:'Angola',flag:'🇦🇴',cont:'Africa',
+   hints:["My flag has two equal horizontal stripes: red on top and black on the bottom, with a yellow emblem in the centre featuring a machete, a cogwheel and a star","I'm one of Africa's biggest oil producers and I'm also very rich in diamonds"],
+   capital:'Luanda',sport:'⚽ Football & 🏀 Basketball',knownFor:'Oil Wealth, Diamonds, Kalandula Waterfalls & Okavango River Source'},
+  {id:508,name:'Mozambique',flag:'🇲🇿',cont:'Africa',
+   hints:["My flag is the only flag in the world with a modern firearm on it — it shows an AK-47 rifle, a hoe and a book on a red triangle","I'm a long country on the east coast of Africa with stunning Indian Ocean beaches and coral reefs"],
+   capital:'Maputo',sport:'⚽ Football',knownFor:'Eusébio (Football Legend), Indian Ocean Beaches, Cashew Nuts & Piri Piri Chili'},
+  {id:894,name:'Zambia',flag:'🇿🇲',cont:'Africa',
+   hints:["My flag is green with an orange eagle above a small rectangle of green, black and orange stripes in the bottom-right corner","Victoria Falls — one of the seven natural wonders of the world — sits right on my border with Zimbabwe"],
+   capital:'Lusaka',sport:'⚽ Football',knownFor:'Victoria Falls, Copper Mining, Wildlife Safaris & Zambezi River'},
+  {id:646,name:'Rwanda',flag:'🇷🇼',cont:'Africa',
+   hints:["My flag has three unequal horizontal bands: sky blue (widest, at top), yellow and green, with a yellow sun in the top-right corner","I'm called the Land of a Thousand Hills — and endangered mountain gorillas live in my misty volcanic forests"],
+   capital:'Kigali',sport:'🚴 Cycling & ⚽ Football',knownFor:'Mountain Gorillas, Land of a Thousand Hills, Remarkable Recovery & Cleanliness'},
+  {id:72,name:'Botswana',flag:'🇧🇼',cont:'Africa',
+   hints:["My flag is sky blue with a horizontal black stripe in the centre bordered by two thin white stripes","I'm home to the Okavango Delta — a magical inland river delta and one of Africa's greatest wildlife havens"],
+   capital:'Gaborone',sport:'⚽ Football & 🏃 Athletics',knownFor:'Okavango Delta, Chobe Elephants, Diamonds & Meerkats'},
+  {id:454,name:'Malawi',flag:'🇲🇼',cont:'Africa',
+   hints:["My flag has three equal horizontal stripes: black on top, red in the middle and green at the bottom, with a red rising sun on the black stripe","I'm a small landlocked country in southeastern Africa, often called the Warm Heart of Africa for my friendly people"],
+   capital:'Lilongwe',sport:'⚽ Football',knownFor:'Lake Malawi (the Lake of Stars), Warm Heart of Africa, Cichlid Fish & Tea Plantations'},
+  {id:466,name:'Mali',flag:'🇲🇱',cont:'Africa',
+   hints:["My flag has three equal vertical stripes: green, yellow and red — the classic pan-African colours","The legendary city of Timbuktu — a great centre of learning, gold and trade throughout history — is inside my borders"],
+   capital:'Bamako',sport:'⚽ Football',knownFor:'Timbuktu, Ancient Mali Empire, Djembe Drumming & Sahara Desert'},
+  // Americas (new)
+  {id:862,name:'Venezuela',flag:'🇻🇪',cont:'S. America',
+   hints:["My flag has three equal horizontal stripes: yellow on top, blue in the middle and red at the bottom, with eight white stars in an arc in the blue band","I have the world's highest uninterrupted waterfall — Angel Falls — which drops nearly 1,000 metres!"],
+   capital:'Caracas',sport:'⚾ Baseball',knownFor:'Angel Falls, Tepui Table Mountains, Arepas & Simón Bolívar'},
+  {id:218,name:'Ecuador',flag:'🇪🇨',cont:'S. America',
+   hints:["My flag has three unequal horizontal stripes: yellow (widest), blue and red, with a coat of arms featuring a condor and a steamboat in the centre","The equator — the imaginary line that divides Earth into north and south — runs right through me, giving me my name!"],
+   capital:'Quito',sport:'⚽ Football',knownFor:'Galápagos Islands, The Equator, Amazon Rainforest & Chocolate'},
+  {id:68,name:'Bolivia',flag:'🇧🇴',cont:'S. America',
+   hints:["My flag has three equal horizontal stripes: red on top, yellow in the middle and green at the bottom","I have the world's largest salt flat — the Salar de Uyuni — which looks like a giant mirror when it rains!"],
+   capital:'Sucre / La Paz',sport:'⚽ Football',knownFor:'Uyuni Salt Flats, Lake Titicaca, Cholita Wrestlers & Llamas'},
+  {id:858,name:'Uruguay',flag:'🇺🇾',cont:'S. America',
+   hints:["My flag has nine horizontal stripes alternating white and blue, with a white square in the top-left corner containing a golden Sun of May with a face","I'm the smallest country in South America, but I was the first country to ever host the FIFA World Cup — back in 1930!"],
+   capital:'Montevideo',sport:'⚽ Football',knownFor:'Uruguay Football, Mate Tea, Carnival of Montevideo & Gaucho Cowboys'},
+  {id:600,name:'Paraguay',flag:'🇵🇾',cont:'S. America',
+   hints:["I'm the only country in the world whose flag has a DIFFERENT emblem on each side! I have three horizontal stripes of red, white and blue","I'm a landlocked country in the heart of South America, sharing borders with Brazil, Argentina and Bolivia"],
+   capital:'Asunción',sport:'⚽ Football',knownFor:'Itaipu Dam, Guaraní Culture, Yerba Mate & Ñandutí Lace'},
+  {id:320,name:'Guatemala',flag:'🇬🇹',cont:'N. America',
+   hints:["My flag has two blue stripes on the outside and a white stripe in the middle — all vertical — with a Resplendent Quetzal bird on the coat of arms","I was the heartland of the ancient Maya civilisation — their incredible jungle pyramids still stand today"],
+   capital:'Guatemala City',sport:'⚽ Football',knownFor:'Ancient Mayan Ruins, Quetzal Bird, Lake Atitlán & Colourful Markets'},
+  {id:188,name:'Costa Rica',flag:'🇨🇷',cont:'N. America',
+   hints:["My flag has five horizontal stripes: blue, white, red (widest), white and blue, with a coat of arms on the red stripe","I'm a peaceful Central American country — I abolished my entire army in 1948 and spend the money on schools and forests instead!"],
+   capital:'San José',sport:'⚽ Football',knownFor:'No Army Since 1948, Rainforests, Pura Vida Lifestyle & Biodiversity'},
+  {id:214,name:'Dominican Republic',flag:'🇩🇴',cont:'Caribbean',
+   hints:["My flag has a white cross dividing it into blue and red quarters, with a coat of arms in the centre","I share the island of Hispaniola with Haiti — making it the only island in the world with two completely separate countries!"],
+   capital:'Santo Domingo',sport:'⚾ Baseball',knownFor:'Baseball Stars, Merengue Music, White Sand Beaches & Oldest Colonial City in the Americas'},
+  {id:332,name:'Haiti',flag:'🇭🇹',cont:'Caribbean',
+   hints:["My flag has two equal horizontal stripes: blue on top and red on the bottom, with a coat of arms in the centre featuring a palm tree and cannons","I was the first Black republic in the world — my people overthrew slavery and won independence in 1804!"],
+   capital:'Port-au-Prince',sport:'⚽ Football',knownFor:'First Black Republic, Vibrant Art, Carnival, Taino Culture & Rum'},
+];
+
+const GLOB_EMOJI={'Asia':'🌏','Europe':'🌍','Africa':'🌍','N. America':'🌎','C. America':'🌎','Caribbean':'🌎','S. America':'🌎','Oceania':'🌏'};
+const PRAISE=['Brilliant! 🎉','Amazing! 🌟','Superstar! ⭐','Wow! 🔥','Fantastic! 🎊','Nailed it! ✅'];
+
+const DIFF={
+  // Tier 1 — very well known
+  643:1,36:1,840:1,124:1,76:1,156:1,356:1,32:1,
+  410:1,360:1,784:1,
+  // Tier 2 — moderately known
+  152:2,380:2,392:2,826:2,250:2,276:2,724:2,578:2,752:2,
+  484:2,170:2,604:2,792:2,704:2,818:2,710:2,504:2,404:2,
+  566:2,231:2,682:2,616:2,804:2,68:2,218:2,524:2,764:2,
+  554:2,352:2,642:2,300:2,246:2,372:2,
+  608:2,458:2,702:2,376:2,203:2,862:2,858:2,834:2,
+  // Tier 3 — everything else (default, no entry needed)
+};
+function getDiff(c){ return DIFF[c.id]||3; }
+
+function flagToCode(f){return[...f].map(c=>String.fromCharCode(c.codePointAt(0)-0x1F1A5)).join('').toLowerCase();}
+function flagImg(flag,name,w){return`<img src="https://flagcdn.com/w${w}/${flagToCode(flag)}.png" alt="${name}">`;}
+
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function spread(arr){
+  const src=[...arr],out=[];let last=null;
+  while(src.length){
+    const idx=src.findIndex(c=>c.cont!==last);
+    const pick=idx===-1?src.splice(0,1)[0]:src.splice(idx,1)[0];
+    out.push(pick);last=pick.cont;
+  }
+  return out;
+}
+
+function buildDeck(){
+  const t1=shuffle(COUNTRIES.filter(c=>getDiff(c)===1));
+  const t2=shuffle(COUNTRIES.filter(c=>getDiff(c)===2));
+  const t3=shuffle(COUNTRIES.filter(c=>getDiff(c)===3));
+  return [...spread(t1),...spread(t2),...spread(t3)];
+}
+
+let gameMode='flag';
+function setMode(m){
+  gameMode=m;
+  document.getElementById('modeFlag').classList.toggle('active',m==='flag');
+  document.getElementById('modeName').classList.toggle('active',m==='name');
+}
+
+let deck=[],qIdx=0,score=0,busy=false,currentQ=null,hintIdx=0;
+
+function startGame(){
+  deck=buildDeck();
+  qIdx=0;score=0;busy=false;
+  document.getElementById('scoreEl').textContent='0';
+  showScreen('quizScreen');
+  nextQ();
+}
+
+function nextQ(){
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  if(qIdx>=deck.length){deck=buildDeck();qIdx=0;}
+  currentQ=deck[qIdx++];
+  hintIdx=0;busy=false;
+
+  const hintBubble=document.getElementById('hintBubble');
+  const hintBtn=document.getElementById('hintBtn');
+  hintBubble.style.display='none';
+  hintBtn.textContent='💡 Hint?';
+  hintBtn.disabled=false;
+
+  document.getElementById('contHint').textContent=`${GLOB_EMOJI[currentQ.cont]} ${currentQ.cont}`;
+
+  if(gameMode==='flag'){
+    document.getElementById('flagDisplay').style.display='flex';
+    document.getElementById('nameDisplay').style.display='none';
+    document.getElementById('flagDisplay').innerHTML=flagImg(currentQ.flag,currentQ.name,320);
+    document.getElementById('qLabel').textContent='Which country does this flag belong to?';
+  } else {
+    document.getElementById('flagDisplay').style.display='none';
+    document.getElementById('nameDisplay').style.display='flex';
+    document.getElementById('nameDisplayText').textContent=currentQ.name;
+    document.getElementById('qLabel').textContent='Find the flag of this country!';
+  }
+
+  buildOptions(currentQ);
+}
+
+function buildOptions(q){
+  const grid=document.getElementById('optsGrid');
+  grid.innerHTML='';
+  const sameCont=shuffle(COUNTRIES.filter(c=>c.id!==q.id&&c.cont===q.cont));
+  const other=shuffle(COUNTRIES.filter(c=>c.id!==q.id&&c.cont!==q.cont));
+  const distract=[...sameCont,...other].slice(0,3);
+
+  shuffle([q,...distract]).forEach(c=>{
+    const btn=document.createElement('button');
+    btn.dataset.cid=String(c.id);
+    if(gameMode==='flag'){
+      btn.className='opt-name-btn';
+      btn.textContent=c.name;
+    } else {
+      btn.className='opt-flag-btn';
+      btn.innerHTML=flagImg(c.flag,c.name,160);
+    }
+    btn.onclick=()=>onAnswer(btn,c.id,q.id);
+    grid.appendChild(btn);
+  });
+}
+
+function onAnswer(btn,chosen,correct){
+  if(busy) return;
+  busy=true;
+  document.getElementById('hintBtn').disabled=true;
+  const grid=document.getElementById('optsGrid');
+  Array.from(grid.children).forEach(b=>{b.disabled=true;b.onclick=null;});
+
+  const isCorrect=chosen===correct;
+  btn.classList.add(isCorrect?'correct':'wrong');
+  if(!isCorrect){
+    Array.from(grid.children).forEach(b=>{
+      if(+b.dataset.cid===correct) b.classList.add('correct');
+    });
+  } else {
+    score++;
+    document.getElementById('scoreEl').textContent=score;
+    sprayConfetti();
+    showCeleb(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+  }
+
+  const delay=isCorrect?1400:900;
+  setTimeout(()=>{hideCeleb();showInfoPanel(currentQ,isCorrect);},delay);
+}
+
+function showHint(){
+  if(!currentQ||hintIdx>=currentQ.hints.length) return;
+  const text=currentQ.hints[hintIdx];
+  const bubble=document.getElementById('hintBubble');
+  bubble.textContent=text;
+  bubble.style.display='block';
+  speak(text);
+  hintIdx++;
+  const btn=document.getElementById('hintBtn');
+  if(hintIdx>=currentQ.hints.length){btn.textContent='💡 No more hints';btn.disabled=true;}
+  else btn.textContent='💡 One more?';
+}
+
+function speak(text){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.rate=0.88;utt.pitch=1.1;
+  speechSynthesis.speak(utt);
+}
+
+function showInfoPanel(q,wasCorrect){
+  document.getElementById('panelFlag').innerHTML=flagImg(q.flag,q.name,80);
+  document.getElementById('panelName').textContent=q.name;
+  const res=document.getElementById('panelResult');
+  res.textContent=wasCorrect?'✅ Correct!':'❌ Not quite — now you know!';
+  res.className='panel-result '+(wasCorrect?'ok':'bad');
+  document.getElementById('fCapital').textContent=q.capital;
+  document.getElementById('fRegion').textContent=q.cont;
+  document.getElementById('fSport').textContent=q.sport;
+  document.getElementById('panelKnown').textContent=`✨ Known for: ${q.knownFor}`;
+  document.getElementById('infoPanel').classList.add('show');
+  document.getElementById('panelOverlay').classList.add('show');
+}
+
+function nextRound(){
+  document.getElementById('infoPanel').classList.remove('show');
+  document.getElementById('panelOverlay').classList.remove('show');
+  setTimeout(nextQ,460);
+}
+
+function showCeleb(txt){document.getElementById('celebTx').textContent=txt;document.getElementById('celebEl').classList.add('show');}
+function hideCeleb(){document.getElementById('celebEl').classList.remove('show');}
+
+function sprayConfetti(){
+  const colors=['#5C6BC0','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#FF6B9D'];
+  const shapes=['●','■','▲','★'];
+  for(let i=0;i<22;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.textContent=shapes[Math.floor(Math.random()*shapes.length)];
+    p.style.cssText=`left:${Math.random()*100}%;font-size:${12+Math.random()*14}px;color:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${0.9+Math.random()*0.8}s;animation-delay:${Math.random()*0.25}s`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),2000);
+  }
+}
+
+function goHome(){
+  document.getElementById('infoPanel').classList.remove('show');
+  document.getElementById('panelOverlay').classList.remove('show');
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  showScreen('homeScreen');
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>

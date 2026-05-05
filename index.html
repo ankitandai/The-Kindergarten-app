@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Kindergarten App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:     #FFF4E0; --ink:    #2B2A4C;
+    --pink:   #FF6B9D; --yellow: #FFD93D;
+    --blue:   #4ECDC4; --green:  #95E06C;
+    --orange: #FF9A3C; --purple: #B388EB;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html { height:100%; }
+  body {
+    min-height:100%; overflow-y:auto;
+    font-family:'Fredoka',sans-serif;
+    background:var(--bg); color:var(--ink);
+    user-select:none; -webkit-user-select:none;
+    touch-action:manipulation;
+    display:flex; flex-direction:column; align-items:center;
+    padding:16px 12px 28px;
+    background-image:
+      radial-gradient(circle at 10% 20%,rgba(255,217,61,.28) 0%,transparent 38%),
+      radial-gradient(circle at 90% 80%,rgba(78,205,196,.22) 0%,transparent 42%),
+      radial-gradient(circle at 50% 50%,rgba(255,107,157,.13) 0%,transparent 52%);
+  }
+
+  /* ── screens ── */
+  .screen { width:100%; max-width:500px; display:none; flex-direction:column; align-items:center; gap:18px; }
+  .screen.active { display:flex; }
+
+  /* ── app title ── */
+  .app-title {
+    font-family:'Bowlby One',sans-serif;
+    font-size:38px; line-height:1.1; letter-spacing:-1px;
+    color:var(--pink); text-shadow:4px 4px 0 var(--ink);
+    text-align:center;
+    animation:wobble 3.2s ease-in-out infinite;
+    margin-top:8px;
+  }
+  @keyframes wobble { 0%,100%{transform:rotate(-1.2deg)} 50%{transform:rotate(1.2deg)} }
+  .app-sub { font-size:19px; font-weight:600; text-align:center; }
+
+  /* ── avatar selection ── */
+  .avatar-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; width:100%; }
+
+  .avatar-card {
+    background:white; border:4px solid var(--ink);
+    border-radius:26px; box-shadow:5px 5px 0 var(--ink);
+    padding:16px 12px 14px; cursor:pointer;
+    transition:transform .12s,box-shadow .12s;
+    text-align:center; flex:1; min-width:130px; max-width:160px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .avatar-card:hover  { transform:translateY(-4px); box-shadow:5px 9px 0 var(--ink); }
+  .avatar-card:active { transform:translate(5px,5px); box-shadow:0 0 0 var(--ink); }
+  .avatar-card.vaana-card  { background:#fff0f5; }
+  .avatar-card.aaru-card   { background:#f0f4ff; }
+  .avatar-card.create-card { background:#f0fff4; border-style:dashed; }
+
+  .avatar-img { width:110px; height:150px; object-fit:contain; display:block; }
+  .avatar-plus { font-size:72px; height:150px; display:flex; align-items:center; justify-content:center; }
+  .avatar-name  { font-family:'Bowlby One',sans-serif; font-size:19px; }
+  .avatar-title { font-size:12px; font-weight:600; color:#888; margin-top:-4px; }
+
+  /* ── create screen ── */
+  .screen-title {
+    font-family:'Bowlby One',sans-serif; font-size:28px; text-align:center; color:var(--ink);
+  }
+
+  .name-input {
+    width:100%; max-width:320px;
+    padding:13px 18px; font-family:'Fredoka',sans-serif; font-size:22px; font-weight:600;
+    border:4px solid var(--ink); border-radius:16px; background:white;
+    box-shadow:4px 4px 0 var(--ink); outline:none; text-align:center; color:var(--ink);
+  }
+  .name-input::placeholder { color:#ccc; }
+  .name-input:focus { border-color:var(--pink); box-shadow:4px 4px 0 var(--pink); }
+
+  .section-label { font-size:16px; font-weight:700; align-self:flex-start; }
+
+  .emoji-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:9px;
+    width:100%; max-width:320px;
+  }
+  .emoji-btn {
+    aspect-ratio:1; font-size:38px;
+    border:3px solid #e0e0e0; border-radius:14px;
+    background:white; box-shadow:2px 2px 0 #ccc;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:transform .1s,box-shadow .1s,border-color .1s;
+    line-height:1;
+  }
+  .emoji-btn:active    { transform:translate(2px,2px); box-shadow:0 0 0 #ccc; }
+  .emoji-btn.selected  { border-color:var(--ink); box-shadow:3px 3px 0 var(--ink); background:var(--yellow); }
+
+  .color-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .color-swatch {
+    width:42px; height:42px; border-radius:50%;
+    border:3px solid rgba(0,0,0,.12); cursor:pointer;
+    transition:transform .1s; box-shadow:2px 2px 0 rgba(0,0,0,.18);
+  }
+  .color-swatch:active   { transform:scale(.9); }
+  .color-swatch.selected { border:3px solid var(--ink); transform:scale(1.18); box-shadow:2px 2px 0 var(--ink); }
+
+  .preview-box {
+    display:flex; align-items:center; gap:14px;
+    background:white; border:3px solid var(--ink); border-radius:20px;
+    padding:12px 22px; box-shadow:4px 4px 0 var(--ink);
+  }
+  .preview-emoji { font-size:58px; line-height:1; }
+  .preview-right { display:flex; flex-direction:column; gap:4px; }
+  .preview-name  { font-family:'Bowlby One',sans-serif; font-size:20px; }
+  .preview-sub   { font-size:13px; font-weight:600; color:#888; }
+
+  /* ── game select ── */
+  .selected-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .selected-img {
+    height:130px; object-fit:contain;
+    filter:drop-shadow(3px 6px 8px rgba(0,0,0,.22));
+    animation:bob 2s ease-in-out infinite;
+  }
+  .selected-emoji-big { font-size:84px; line-height:1; animation:bob 2s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .greeting { font-family:'Bowlby One',sans-serif; font-size:25px; text-align:center; }
+
+  .game-cards { display:flex; gap:14px; width:100%; justify-content:center; flex-wrap:wrap; }
+  .game-card {
+    flex:1; min-width:176px; max-width:220px;
+    border:4px solid var(--ink); border-radius:26px; box-shadow:5px 5px 0 var(--ink);
+    cursor:pointer; transition:transform .12s,box-shadow .12s;
+    text-align:center; padding:24px 14px 20px;
+    display:flex; flex-direction:column; align-items:center; gap:9px;
+  }
+  .game-card:hover  { transform:translateY(-4px); box-shadow:5px 9px 0 var(--ink); }
+  .game-card:active { transform:translate(5px,5px); box-shadow:0 0 0 var(--ink); }
+  .game-card.math    { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+  .game-card.word    { background:var(--yellow); color:var(--ink); }
+  .game-card.science { background:linear-gradient(135deg,#11998e,#38ef7d); color:var(--ink); }
+  .game-icon { font-size:56px; line-height:1; }
+  .game-name { font-family:'Bowlby One',sans-serif; font-size:21px; line-height:1.2; }
+  .game-desc { font-size:13px; font-weight:600; opacity:.85; }
+
+  /* 3-card layout: wrap to 2+1 on phones, 3-across on wider screens */
+  @media (min-width: 480px) {
+    .game-card { min-width: 140px; }
+  }
+
+  /* ── shared buttons ── */
+  .back-btn {
+    background:white; border:3px solid var(--ink); border-radius:999px;
+    box-shadow:2px 2px 0 var(--ink); width:44px; height:44px; font-size:20px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    align-self:flex-start; transition:transform .1s,box-shadow .1s;
+    font-family:inherit;
+  }
+  .back-btn:active { transform:translate(2px,2px); box-shadow:0 0 0 var(--ink); }
+
+  .big-btn {
+    width:100%; max-width:320px;
+    padding:15px; font-family:'Fredoka',sans-serif; font-size:20px; font-weight:700;
+    border:4px solid var(--ink); border-radius:16px; background:var(--green);
+    box-shadow:4px 4px 0 var(--ink); cursor:pointer; color:var(--ink);
+    transition:transform .1s,box-shadow .1s;
+  }
+  .big-btn:active { transform:translate(4px,4px); box-shadow:0 0 0 var(--ink); }
+  .big-btn:disabled { opacity:.5; cursor:default; }
+
+  /* ── decorative ── */
+  .starburst { position:fixed; pointer-events:none; z-index:0; opacity:.14; animation:spin 18s linear infinite; font-size:1.8em; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  @media (max-width:400px) {
+    .app-title { font-size:30px; }
+    .avatar-card { min-width:108px; max-width:140px; }
+    .avatar-img  { width:90px; height:122px; }
+  }
+
+  .game-card.maps   { background:linear-gradient(135deg,#f7971e,#ffd200); color:var(--ink); }
+  .game-card.flags  { background:linear-gradient(135deg,#5C6BC0,#9575CD); color:white; }
+  .game-card.shapes { background:linear-gradient(135deg,#a855f7,#ec4899); color:white; }
+  .game-card.mix    { background:linear-gradient(135deg,#f59e0b,#ef4444); color:white; }
+</style>
+</head>
+<body>
+
+<span class="starburst" style="top:5%;left:4%">⭐</span>
+<span class="starburst" style="top:10%;right:7%;animation-duration:22s">🌟</span>
+<span class="starburst" style="bottom:9%;left:9%;animation-duration:26s">✨</span>
+<span class="starburst" style="bottom:14%;right:5%;animation-duration:20s">⭐</span>
+
+<!-- ══ SCREEN 1 — PICK YOUR AVATAR ══ -->
+<div class="screen active" id="avatarScreen">
+  <div class="app-title">The Kindergarten<br>App! 🎒</div>
+  <p class="app-sub">Who's playing today? 👋</p>
+  <div class="avatar-row">
+
+    <div class="avatar-card vaana-card" onclick="pickBuiltIn('vaana')">
+      <img class="avatar-img" src="Avatar/Vaana.png" alt="Vaana">
+      <div class="avatar-name">Vaana</div>
+      <div class="avatar-title">The Naughty One 😜</div>
+    </div>
+
+    <div class="avatar-card aaru-card" onclick="pickBuiltIn('aaru')">
+      <img class="avatar-img" src="Avatar/Aaru.png" alt="Aaru">
+      <div class="avatar-name">Aaru</div>
+      <div class="avatar-title">The Explorer 🧭</div>
+    </div>
+
+    <div class="avatar-card create-card" onclick="openCreateScreen()">
+      <div class="avatar-plus">✏️</div>
+      <div class="avatar-name">Create!</div>
+      <div class="avatar-title">Make your own ⭐</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ SCREEN 2 — CREATE YOUR AVATAR ══ -->
+<div class="screen" id="createScreen">
+  <button class="back-btn" onclick="showScreen('avatarScreen')">←</button>
+  <div class="screen-title">Create Your Avatar! ✏️</div>
+
+  <input class="name-input" id="nameInput" type="text"
+         placeholder="Type your name…" maxlength="16"
+         oninput="updatePreview()">
+
+  <span class="section-label">Pick your face:</span>
+  <div class="emoji-grid" id="emojiGrid"></div>
+
+  <span class="section-label">Pick your colour:</span>
+  <div class="color-row" id="colorRow"></div>
+
+  <div class="preview-box">
+    <div class="preview-emoji" id="previewEmoji">😊</div>
+    <div class="preview-right">
+      <div class="preview-name" id="previewName">Your Name</div>
+      <div class="preview-sub"  id="previewSub" >Custom Hero ⭐</div>
+    </div>
+  </div>
+
+  <button class="big-btn" id="doneBtn" onclick="confirmCustom()">All Done! Let's Go! 🎉</button>
+</div>
+
+<!-- ══ SCREEN 3 — CHOOSE A GAME ══ -->
+<div class="screen" id="gameScreen">
+  <button class="back-btn" onclick="showScreen('avatarScreen')">←</button>
+
+  <div class="selected-wrap">
+    <img  class="selected-img"       id="selectedImg"   src="" alt="">
+    <div  class="selected-emoji-big" id="selectedEmoji" style="display:none">😊</div>
+    <p    class="greeting"           id="greeting">Hi! What do you want to play?</p>
+  </div>
+
+  <div class="game-cards">
+    <div class="game-card math" onclick="launchMath()">
+      <div class="game-icon">🏃</div>
+      <div class="game-name">Math Runner</div>
+      <div class="game-desc">Answer questions &amp; keep running!</div>
+    </div>
+    <div class="game-card word" onclick="launchWord()">
+      <div class="game-icon">🔤</div>
+      <div class="game-name">Build a Word</div>
+      <div class="game-desc">Spell words and earn stars!</div>
+    </div>
+    <div class="game-card science" onclick="launchScience()">
+      <div class="game-icon">🔬</div>
+      <div class="game-name">Science Explorer</div>
+      <div class="game-desc">Discover amazing facts!</div>
+    </div>
+    <div class="game-card maps" onclick="launchMaps()">
+      <div class="game-icon">🗺️</div>
+      <div class="game-name">Maps Safari</div>
+      <div class="game-desc">Test your world geography skills!</div>
+    </div>
+    <div class="game-card flags" onclick="launchFlags()">
+      <div class="game-icon">🚩</div>
+      <div class="game-name">Flag Quest</div>
+      <div class="game-desc">Match flags to countries!</div>
+    </div>
+    <div class="game-card shapes" onclick="launchShapes()">
+      <div class="game-icon">🔷</div>
+      <div class="game-name">Shape Explorer</div>
+      <div class="game-desc">Learn shapes across 3 levels!</div>
+    </div>
+    <div class="game-card mix" onclick="launchMix()">
+      <div class="game-icon">🎲</div>
+      <div class="game-name">Mix It Up!</div>
+      <div class="game-desc">Math · Flags · Geo · Science!</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── data ────────────────────────────────────────
+const BUILT_IN = {
+  vaana: { name:'Vaana', img:'Avatar/Vaana.png', head:'Avatar/Vaana - Head.png', title:'The Naughty One 😜' },
+  aaru:  { name:'Aaru',  img:'Avatar/Aaru.png',  head:'Avatar/Aaru - head.png',  title:'The Explorer 🧭' },
+};
+
+const FACE_EMOJIS = ['😊','😎','🤩','🥳','🤓','😄','🐱','🦊'];
+
+const OUTFIT_COLORS = [
+  { hex:'#FF6B9D', label:'Pink'   },
+  { hex:'#FF9A3C', label:'Orange' },
+  { hex:'#667eea', label:'Purple' },
+  { hex:'#4ECDC4', label:'Teal'   },
+  { hex:'#95E06C', label:'Green'  },
+  { hex:'#e74c3c', label:'Red'    },
+];
+
+let chosenEmoji = FACE_EMOJIS[0];
+let chosenColor = OUTFIT_COLORS[0].hex;
+
+// ── build emoji + color pickers ─────────────────
+const emojiGrid = document.getElementById('emojiGrid');
+FACE_EMOJIS.forEach((em, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'emoji-btn' + (i === 0 ? ' selected' : '');
+  btn.textContent = em;
+  btn.onclick = () => {
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    chosenEmoji = em;
+    updatePreview();
+  };
+  emojiGrid.appendChild(btn);
+});
+
+const colorRow = document.getElementById('colorRow');
+OUTFIT_COLORS.forEach((c, i) => {
+  const sw = document.createElement('div');
+  sw.className = 'color-swatch' + (i === 0 ? ' selected' : '');
+  sw.style.background = c.hex;
+  sw.title = c.label;
+  sw.onclick = () => {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+    sw.classList.add('selected');
+    chosenColor = c.hex;
+    updatePreview();
+  };
+  colorRow.appendChild(sw);
+});
+
+// ── preview ──────────────────────────────────────
+function updatePreview() {
+  document.getElementById('previewEmoji').textContent = chosenEmoji;
+  const name = document.getElementById('nameInput').value.trim();
+  document.getElementById('previewName').textContent  = name || 'Your Name';
+}
+
+// ── flow ─────────────────────────────────────────
+function openCreateScreen() {
+  // pre-fill if returning to edit
+  const saved = localStorage.getItem('kg_custom_avatar');
+  if (saved) {
+    const d = JSON.parse(saved);
+    document.getElementById('nameInput').value = d.name || '';
+    // restore emoji selection
+    if (d.emoji) {
+      chosenEmoji = d.emoji;
+      document.querySelectorAll('.emoji-btn').forEach(b => {
+        b.classList.toggle('selected', b.textContent === d.emoji);
+      });
+    }
+    // restore color selection
+    if (d.color) {
+      chosenColor = d.color;
+      const swatches = document.querySelectorAll('.color-swatch');
+      swatches.forEach((sw, i) => {
+        sw.classList.toggle('selected', OUTFIT_COLORS[i].hex === d.color);
+      });
+    }
+    updatePreview();
+  }
+  showScreen('createScreen');
+}
+
+function pickBuiltIn(char) {
+  localStorage.setItem('kg_avatar', char);
+  const av = BUILT_IN[char];
+  // show selected image
+  const img  = document.getElementById('selectedImg');
+  const emojiEl = document.getElementById('selectedEmoji');
+  img.src = av.head; img.style.display = 'block';
+  emojiEl.style.display = 'none';
+  document.getElementById('greeting').innerHTML =
+    `Hi <span style="color:var(--pink)">${av.name}</span>! 👋<br>What do you want to play?`;
+  showScreen('gameScreen');
+}
+
+function confirmCustom() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) {
+    document.getElementById('nameInput').focus();
+    document.getElementById('nameInput').style.borderColor = '#e74c3c';
+    setTimeout(() => document.getElementById('nameInput').style.borderColor = '', 1200);
+    return;
+  }
+  const data = { name, emoji: chosenEmoji, color: chosenColor };
+  localStorage.setItem('kg_avatar', 'custom');
+  localStorage.setItem('kg_custom_avatar', JSON.stringify(data));
+
+  const img    = document.getElementById('selectedImg');
+  const emojiEl = document.getElementById('selectedEmoji');
+  img.style.display = 'none';
+  emojiEl.textContent = data.emoji; emojiEl.style.display = 'block';
+  document.getElementById('greeting').innerHTML =
+    `Hi <span style="color:var(--pink)">${data.name}</span>! 👋<br>What do you want to play?`;
+  showScreen('gameScreen');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function launchMath()    { window.location.href = 'math-adventure.html';    }
+function launchWord()    { window.location.href = 'build-a-word.html';     }
+function launchScience() { window.location.href = 'science-explorer.html'; }
+function launchMaps()    { window.location.href = 'maps.html';             }
+function launchFlags()   { window.location.href = 'flags.html';            }
+function launchShapes()  { window.location.href = 'shapes.html';           }
+function launchMix()     { window.location.href = 'mix.html';              }
+
+// ── restore state on page load ───────────────────
+(function () {
+  const saved = localStorage.getItem('kg_avatar');
+  if (!saved) return;
+  if (saved === 'vaana' || saved === 'aaru') {
+    const av = BUILT_IN[saved];
+    const img  = document.getElementById('selectedImg');
+    const emojiEl = document.getElementById('selectedEmoji');
+    img.src = av.head; img.style.display = 'block';
+    emojiEl.style.display = 'none';
+    document.getElementById('greeting').innerHTML =
+      `Hi <span style="color:var(--pink)">${av.name}</span>! 👋<br>What do you want to play?`;
+  } else if (saved === 'custom') {
+    const d = JSON.parse(localStorage.getItem('kg_custom_avatar') || '{}');
+    const img    = document.getElementById('selectedImg');
+    const emojiEl = document.getElementById('selectedEmoji');
+    img.style.display = 'none';
+    emojiEl.textContent = d.emoji || '😊'; emojiEl.style.display = 'block';
+    document.getElementById('greeting').innerHTML =
+      `Hi <span style="color:var(--pink)">${d.name || 'Hero'}</span>! 👋<br>What do you want to play?`;
+  }
+
+})();
+</script>
+</body>
+</html>

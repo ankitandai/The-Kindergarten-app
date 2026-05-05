@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mix It Up! 🎲</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFF8E1;--ink:#1E1B4B;--gold:#FF9800;--green:#95E06C;--yellow:#FFD93D;--pink:#FF6B9D;--blue:#5C6BC0;--purple:#7C3AED;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{height:100%;}
+body{
+  min-height:100%;overflow-y:auto;font-family:'Fredoka',sans-serif;
+  background:var(--bg);color:var(--ink);
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;padding-bottom:32px;
+  background-image:
+    radial-gradient(circle at 10% 20%,rgba(255,152,0,.22) 0%,transparent 38%),
+    radial-gradient(circle at 90% 80%,rgba(92,107,192,.18) 0%,transparent 42%);
+}
+.screen{width:100%;max-width:500px;display:none;flex-direction:column;align-items:center;padding:0 16px 16px;}
+.screen.active{display:flex;}
+.topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px;}
+.icon-btn{
+  background:white;border:3px solid var(--ink);border-radius:50%;
+  width:44px;height:44px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s;font-family:inherit;
+}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:20px;}
+.home-icon{font-size:80px;line-height:1;margin:10px 0 6px;animation:bob 2.4s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.home-title{font-family:'Bowlby One',sans-serif;font-size:30px;text-align:center;color:var(--gold);text-shadow:3px 3px 0 var(--ink);}
+.home-sub{font-size:15px;font-weight:600;color:#999;text-align:center;margin:4px 0 6px;max-width:300px;}
+.xp-bar-wrap{width:100%;max-width:380px;background:#e0d4a0;border-radius:999px;height:14px;margin:6px 0 4px;border:2px solid var(--ink);position:relative;}
+.xp-bar{height:100%;background:var(--gold);border-radius:999px;transition:width .5s;}
+.xp-label{font-size:13px;font-weight:700;color:#888;text-align:center;margin-bottom:14px;}
+.levels-grid{display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px;}
+.level-card{
+  background:white;border:4px solid var(--ink);border-radius:20px;
+  box-shadow:5px 5px 0 var(--ink);padding:14px 16px;cursor:pointer;
+  transition:transform .12s,box-shadow .12s;
+  display:flex;align-items:center;gap:14px;
+}
+.level-card:hover{transform:translateY(-3px);box-shadow:5px 8px 0 var(--ink);}
+.level-card:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+.level-card.locked{opacity:.5;cursor:not-allowed;}
+.level-card.locked:hover{transform:none;box-shadow:5px 5px 0 var(--ink);}
+.lv-badge{
+  width:50px;height:50px;border-radius:50%;
+  background:var(--gold);color:white;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bowlby One',sans-serif;font-size:22px;
+  border:3px solid var(--ink);flex-shrink:0;
+}
+.level-card.locked .lv-badge{background:#bbb;}
+.lv-info{flex:1;}
+.lv-name{font-family:'Bowlby One',sans-serif;font-size:17px;}
+.lv-tags{font-size:12px;font-weight:600;color:#999;margin:2px 0 3px;}
+.lv-stars{font-size:18px;letter-spacing:2px;}
+.score-pill{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
+  padding:3px 14px;font-family:'Bowlby One',sans-serif;font-size:20px;
+  box-shadow:3px 3px 0 var(--ink);min-width:50px;text-align:center;
+}
+.prog-wrap{width:100%;max-width:400px;background:#e8e0c0;border-radius:999px;height:12px;margin:2px 0 10px;border:2px solid var(--ink);}
+.prog-bar{height:100%;background:var(--gold);border-radius:999px;transition:width .35s;}
+.cat-tag{
+  display:inline-block;padding:3px 12px;border-radius:999px;
+  font-size:12px;font-weight:700;border:2px solid var(--ink);
+  margin:4px 0 8px;
+}
+.cat-math   {background:#E8F5E9;color:#2E7D32;}
+.cat-flag   {background:#E8EAF6;color:#283593;}
+.cat-geo    {background:#FFF3E0;color:#E65100;}
+.cat-shape  {background:#F3E5F5;color:#6A1B9A;}
+.cat-science{background:#E0F7FA;color:#00695C;}
+.visual-box{
+  width:100%;max-width:240px;min-height:140px;
+  background:white;border:4px solid var(--ink);border-radius:20px;
+  box-shadow:5px 5px 0 var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  padding:10px;margin:6px 0 4px;
+}
+.visual-box img{width:100%;max-width:200px;height:auto;border-radius:8px;display:block;}
+.visual-box svg{width:120px;height:120px;}
+.q-text{font-family:'Bowlby One',sans-serif;font-size:20px;text-align:center;margin:6px 0 4px;max-width:380px;line-height:1.3;}
+.q-label-sm{font-size:11px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:400px;}
+.opt{
+  border:4px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;padding:13px 8px;background:white;
+  font-family:'Fredoka',sans-serif;font-size:16px;font-weight:700;
+  color:var(--ink);text-align:center;line-height:1.3;
+  transition:transform .1s,box-shadow .1s;
+}
+.opt:active:not([disabled]){transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.opt.correct{background:var(--green)!important;border-color:var(--ink)!important;}
+.opt.wrong{background:#ffb3b3!important;border-color:#e74c3c!important;}
+.hint-zone{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:5px;margin:6px 0 2px;}
+.hint-btn{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
+  padding:4px 16px;font-size:13px;font-weight:700;
+  cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s;color:var(--ink);font-family:inherit;
+}
+.hint-btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.hint-btn:disabled{opacity:.45;cursor:default;}
+.hint-bubble{
+  background:#fffde7;border:2px solid #f5c518;border-radius:12px;
+  padding:7px 13px;font-size:13px;font-weight:600;text-align:center;
+  max-width:340px;animation:fadeUp .3s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+#celebEl{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:100;opacity:0;transition:opacity .25s;}
+#celebEl.show{opacity:1;}
+.celeb-em{font-size:86px;animation:popIn .35s cubic-bezier(.36,.07,.19,.97);}
+.celeb-tx{font-family:'Bowlby One',sans-serif;font-size:28px;color:var(--gold);text-shadow:3px 3px 0 var(--ink);margin-top:6px;}
+@keyframes popIn{0%{transform:scale(.3)rotate(-15deg)}70%{transform:scale(1.15)rotate(3deg)}100%{transform:scale(1)}}
+.confetti-piece{position:fixed;top:-10px;pointer-events:none;z-index:200;animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(110vh)rotate(720deg);opacity:0;}}
+.result-icon{font-size:72px;margin:20px 0 8px;}
+.result-title{font-family:'Bowlby One',sans-serif;font-size:28px;color:var(--gold);text-shadow:3px 3px 0 var(--ink);text-align:center;}
+.result-score{font-size:19px;font-weight:700;margin:8px 0 2px;text-align:center;}
+.result-stars{font-size:42px;letter-spacing:4px;margin:6px 0 6px;}
+.xp-gained{font-size:15px;font-weight:700;color:var(--gold);margin-bottom:16px;text-align:center;}
+.big-btn{
+  width:100%;max-width:300px;padding:15px;
+  font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;
+  border:4px solid var(--ink);border-radius:18px;background:var(--green);
+  box-shadow:5px 5px 0 var(--ink);cursor:pointer;color:var(--ink);
+  transition:transform .1s,box-shadow .1s;margin-bottom:10px;
+}
+.big-btn:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+.big-btn.white{background:white;}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="screen active" id="homeScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="window.location.href='index.html'">←</button>
+    <div class="topbar-title">Mix It Up!</div>
+    <div style="width:44px"></div>
+  </div>
+  <div class="home-icon">🎲</div>
+  <div class="home-title">Mix It Up!</div>
+  <p class="home-sub">Math · Flags · Geography · Shapes · Science</p>
+  <div class="xp-bar-wrap"><div class="xp-bar" id="xpBar" style="width:0%"></div></div>
+  <div class="xp-label" id="xpLabel">0 XP total</div>
+  <div class="levels-grid" id="levelsGrid"></div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="quizScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="topbar-title" id="quizTitle">Level 1</div>
+    <div class="score-pill" id="scoreEl">0</div>
+  </div>
+  <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
+  <div class="cat-tag" id="catTag">Math 🔢</div>
+  <div class="visual-box" id="visualBox" style="display:none"></div>
+  <div class="q-text" id="qText"></div>
+  <div class="hint-zone">
+    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 Hint?</button>
+    <div class="hint-bubble" id="hintBubble" style="display:none"></div>
+  </div>
+  <div class="q-label-sm">Pick the right answer</div>
+  <div class="opts" id="optsEl"></div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="resultScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="topbar-title">Mix It Up!</div>
+    <div style="width:44px"></div>
+  </div>
+  <div class="result-icon" id="rIcon">🎉</div>
+  <div class="result-title" id="rTitle">Well done!</div>
+  <div class="result-score" id="rScore"></div>
+  <div class="result-stars" id="rStars"></div>
+  <div class="xp-gained" id="xpGained"></div>
+  <button class="big-btn" id="nextBtn" onclick="nextLevel()" style="display:none">Next Level →</button>
+  <button class="big-btn" onclick="startLevel(curLv)">Play Again 🔁</button>
+  <button class="big-btn white" onclick="goHome()">Home 🏠</button>
+</div>
+
+<div id="celebEl">
+  <div class="celeb-em">⭐</div>
+  <div class="celeb-tx" id="celebTx">Brilliant!</div>
+</div>
+
+<script>
+// ── helpers ─────────────────────────────────────────────────
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+function rand(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function pick(arr){return arr[0|Math.random()*arr.length];}
+function numOpts(ans,min,max,count=4){
+  const s=new Set([ans]);
+  while(s.size<count){
+    let v=ans+pick([-3,-2,-1,1,2,3,4,5,10]);
+    if(v>=min&&v<=max)s.add(v);
+    else s.add(Math.max(min,Math.min(max,ans+pick([1,2,-1,-2]))));
+  }
+  return shuffle([...s]).slice(0,count);
+}
+function flagToCode(f){return[...f].map(c=>String.fromCharCode(c.codePointAt(0)-0x1F1A5)).join('').toLowerCase();}
+function flagImg(code,name){return`<img src="https://flagcdn.com/w320/${code}.png" alt="${name}">`;}
+
+// ── data: FLAGS ──────────────────────────────────────────────
+const FLAGS=[
+  {name:'United States',flag:'🇺🇸'},{name:'Japan',flag:'🇯🇵'},
+  {name:'Canada',flag:'🇨🇦'},{name:'Brazil',flag:'🇧🇷'},
+  {name:'India',flag:'🇮🇳'},{name:'United Kingdom',flag:'🇬🇧'},
+  {name:'Australia',flag:'🇦🇺'},{name:'France',flag:'🇫🇷'},
+  {name:'Germany',flag:'🇩🇪'},{name:'China',flag:'🇨🇳'},
+  {name:'Russia',flag:'🇷🇺'},{name:'Italy',flag:'🇮🇹'},
+  {name:'Mexico',flag:'🇲🇽'},{name:'Spain',flag:'🇪🇸'},
+  {name:'South Africa',flag:'🇿🇦'},{name:'Jamaica',flag:'🇯🇲'},
+  {name:'Nepal',flag:'🇳🇵'},{name:'Turkey',flag:'🇹🇷'},
+  {name:'South Korea',flag:'🇰🇷'},{name:'Indonesia',flag:'🇮🇩'},
+  {name:'Argentina',flag:'🇦🇷'},{name:'Egypt',flag:'🇪🇬'},
+  {name:'Sweden',flag:'🇸🇪'},{name:'Norway',flag:'🇳🇴'},
+  {name:'Greece',flag:'🇬🇷'},{name:'Thailand',flag:'🇹🇭'},
+];
+
+// ── data: GEOGRAPHY ──────────────────────────────────────────
+const CAPS=[
+  {c:'France',cap:'Paris',w:['London','Berlin','Rome']},
+  {c:'Japan',cap:'Tokyo',w:['Kyoto','Seoul','Beijing']},
+  {c:'Australia',cap:'Canberra',w:['Sydney','Melbourne','Perth']},
+  {c:'India',cap:'New Delhi',w:['Mumbai','Kolkata','Chennai']},
+  {c:'Brazil',cap:'Brasília',w:['São Paulo','Rio de Janeiro','Salvador']},
+  {c:'United Kingdom',cap:'London',w:['Manchester','Edinburgh','Dublin']},
+  {c:'China',cap:'Beijing',w:['Shanghai','Guangzhou','Shenzhen']},
+  {c:'Russia',cap:'Moscow',w:['St. Petersburg','Vladivostok','Minsk']},
+  {c:'Germany',cap:'Berlin',w:['Munich','Hamburg','Frankfurt']},
+  {c:'Italy',cap:'Rome',w:['Milan','Venice','Naples']},
+  {c:'Canada',cap:'Ottawa',w:['Toronto','Vancouver','Montreal']},
+  {c:'Spain',cap:'Madrid',w:['Barcelona','Seville','Valencia']},
+  {c:'Mexico',cap:'Mexico City',w:['Cancún','Guadalajara','Monterrey']},
+  {c:'Argentina',cap:'Buenos Aires',w:['Córdoba','Rosario','Mendoza']},
+  {c:'Egypt',cap:'Cairo',w:['Alexandria','Luxor','Aswan']},
+  {c:'South Africa',cap:'Pretoria',w:['Cape Town','Johannesburg','Durban']},
+  {c:'Nigeria',cap:'Abuja',w:['Lagos','Kano','Ibadan']},
+  {c:'Greece',cap:'Athens',w:['Thessaloniki','Patras','Heraklion']},
+  {c:'Turkey',cap:'Ankara',w:['Istanbul','Izmir','Bursa']},
+  {c:'Sweden',cap:'Stockholm',w:['Gothenburg','Malmö','Uppsala']},
+  {c:'Norway',cap:'Oslo',w:['Bergen','Stavanger','Trondheim']},
+  {c:'Portugal',cap:'Lisbon',w:['Porto','Braga','Coimbra']},
+  {c:'Netherlands',cap:'Amsterdam',w:['Rotterdam','The Hague','Utrecht']},
+  {c:'South Korea',cap:'Seoul',w:['Busan','Incheon','Daegu']},
+  {c:'Indonesia',cap:'Jakarta',w:['Surabaya','Bali','Bandung']},
+  {c:'Thailand',cap:'Bangkok',w:['Chiang Mai','Phuket','Pattaya']},
+  {c:'Kenya',cap:'Nairobi',w:['Mombasa','Kisumu','Nakuru']},
+  {c:'Saudi Arabia',cap:'Riyadh',w:['Jeddah','Mecca','Medina']},
+  {c:'UAE',cap:'Abu Dhabi',w:['Dubai','Sharjah','Ajman']},
+  {c:'Pakistan',cap:'Islamabad',w:['Karachi','Lahore','Peshawar']},
+];
+
+// ── data: SCIENCE ────────────────────────────────────────────
+const SCI=[
+  {q:'What do plants need to make food?',a:'Sunlight',w:['Rain','Soil','Wind'],hint:'Think about what a plant needs from the sky!'},
+  {q:'How many legs does a spider have?',a:'8',w:['6','4','10'],hint:'Spiders have more legs than insects!'},
+  {q:'What is the biggest planet in our solar system?',a:'Jupiter',w:['Saturn','Earth','Mars'],hint:'It is so big that over 1,300 Earths could fit inside it!'},
+  {q:'What gas do we breathe to stay alive?',a:'Oxygen',w:['Carbon dioxide','Nitrogen','Hydrogen'],hint:'Plants make this gas — we breathe it in!'},
+  {q:'Which animal is the fastest on land?',a:'Cheetah',w:['Lion','Horse','Ostrich'],hint:'This spotted cat can run up to 120 km per hour!'},
+  {q:'What do caterpillars turn into?',a:'Butterflies',w:['Dragonflies','Bees','Grasshoppers'],hint:'They build a chrysalis and then transform!'},
+  {q:'How many bones does an adult human have?',a:'206',w:['106','306','406'],hint:'Babies have more — about 270! They fuse as we grow.'},
+  {q:'What is the nearest star to Earth?',a:'The Sun',w:['The Moon','Polaris','Sirius'],hint:'We see it every single day!'},
+  {q:'What is the hardest natural material on Earth?',a:'Diamond',w:['Gold','Iron','Steel'],hint:'It can scratch any other material!'},
+  {q:'How many hearts does an octopus have?',a:'3',w:['1','2','4'],hint:'Two pump blood to the gills, one to the rest of its body!'},
+  {q:"What covers about 71% of Earth's surface?",a:'Water',w:['Land','Ice','Sand'],hint:"That is why Earth is called the Blue Planet!"},
+  {q:'Which planet is the Red Planet?',a:'Mars',w:['Jupiter','Saturn','Venus'],hint:'Its red colour comes from iron oxide — rust — on its surface!'},
+  {q:'What do bees make?',a:'Honey',w:['Wax','Silk','Nectar'],hint:'They make it from flower nectar inside the hive!'},
+  {q:'How many colours are in a rainbow?',a:'7',w:['5','6','8'],hint:'Red, Orange, Yellow, Green, Blue, Indigo, Violet!'},
+  {q:'What do you call a baby frog?',a:'Tadpole',w:['Froglet','Cub','Kitten'],hint:'It lives in water and has a tail before growing legs!'},
+  {q:'Which animal can change its colour?',a:'Chameleon',w:['Parrot','Gecko','Frog'],hint:'It does this to hide and to show its mood!'},
+  {q:"How long does it take Earth to orbit the Sun?",a:'1 year',w:['1 day','1 month','10 years'],hint:'That is why we have 365 days in a year!'},
+  {q:'What type of animal is a dolphin?',a:'Mammal',w:['Fish','Reptile','Amphibian'],hint:'It breathes air and feeds its young with milk!'},
+  {q:'Where does the Sun go at night?',a:'Nowhere — Earth rotates away',w:['Behind the Moon','Under the sea','To another galaxy'],hint:'Earth spins — our side faces away from the Sun!'},
+  {q:'What do you call a group of fish?',a:'A school',w:['A pack','A flock','A herd'],hint:'Fish swim together in large groups with this name!'},
+  {q:'Which gas do plants breathe OUT?',a:'Oxygen',w:['Carbon dioxide','Nitrogen','Steam'],hint:'During the day, plants release this gas through their leaves!'},
+  {q:'How many sides does a snowflake have?',a:'6',w:['4','8','12'],hint:'Every snowflake has 6 arms or points — always!'},
+  {q:'What is the largest ocean on Earth?',a:'Pacific',w:['Atlantic','Indian','Arctic'],hint:'It covers more area than all the land on Earth combined!'},
+  {q:'What do you call a scientist who studies dinosaurs?',a:'Palaeontologist',w:['Geologist','Biologist','Astronomer'],hint:'They dig up fossils to learn about ancient life!'},
+];
+
+// ── data: SHAPES ─────────────────────────────────────────────
+const SHAPE_QS=[
+  {q:'How many sides does a triangle have?',a:'3',w:['4','2','5']},
+  {q:'How many sides does a square have?',a:'4',w:['3','5','6']},
+  {q:'How many sides does a pentagon have?',a:'5',w:['4','6','8']},
+  {q:'How many sides does a hexagon have?',a:'6',w:['5','7','8']},
+  {q:'How many sides does an octagon have?',a:'8',w:['6','7','10']},
+  {q:'A circle has how many corners?',a:'0',w:['1','2','4']},
+  {q:'What shape has 3 sides and 3 corners?',a:'Triangle',w:['Square','Pentagon','Rectangle']},
+  {q:'What shape looks like a stretched circle?',a:'Oval',w:['Diamond','Rectangle','Hexagon']},
+  {q:'What shape is a stop sign?',a:'Octagon',w:['Hexagon','Pentagon','Heptagon']},
+  {q:'What shape has 4 equal sides and stands on a corner?',a:'Diamond',w:['Square','Rectangle','Trapezoid']},
+  {q:'Which shape looks like a honeycomb cell?',a:'Hexagon',w:['Pentagon','Octagon','Heptagon']},
+  {q:'How many points does a star have?',a:'5',w:['4','6','8']},
+  {q:'What shape has 4 sides with 2 long and 2 short?',a:'Rectangle',w:['Square','Diamond','Trapezoid']},
+  {q:'Which shape has no sides and no corners?',a:'Circle',w:['Oval','Square','Triangle']},
+  {q:'How many sides does a parallelogram have?',a:'4',w:['3','5','6']},
+];
+
+// ── level definitions ────────────────────────────────────────
+// 10 questions per level, categories listed
+const LEVEL_DEFS=[
+  {n:1,name:'Starter Mix',   tags:'Math · Shapes · Science',       cats:['math','math','math','shape','shape','shape','sci','sci','sci','sci']},
+  {n:2,name:'World Mix',     tags:'Flags · Geography · Math',      cats:['flag','flag','flag','geo','geo','geo','math','math','sci','sci']},
+  {n:3,name:'Super Mix',     tags:'Flags · Geo · Shapes · Science',cats:['flag','flag','geo','geo','shape','shape','math','math','sci','sci']},
+  {n:4,name:'Champion Mix',  tags:'All categories — harder!',      cats:['flag','flag','flag','geo','geo','geo','math','math','sci','sci']},
+  {n:5,name:'Grand Champion',tags:'Everything — the hardest yet!', cats:['flag','flag','geo','geo','shape','shape','math','math','sci','sci']},
+];
+const Q_PER_LV=10;
+const XP_PER_LV=100;
+
+const PRAISE=['Brilliant! 🎉','Amazing! 🌟','Superstar! ⭐','Wow! 🔥','Fantastic! 🎊','Nailed it! ✅'];
+
+let save=JSON.parse(localStorage.getItem('kg_mix')||'{}');
+// save = { totalXp:0, levels:{ 1:{best,stars}, ... } }
+if(!save.totalXp)save.totalXp=0;
+if(!save.levels)save.levels={};
+
+let curLv=1,qIdx=0,score=0,busy=false,curQ=null,deck=[];
+let usedFlags=[],usedCaps=[],usedSci=[],usedShape=[];
+
+function persist(){localStorage.setItem('kg_mix',JSON.stringify(save));}
+
+function unlocked(n){
+  if(n===1)return true;
+  const p=save.levels[n-1];
+  return p&&p.best>=(Q_PER_LV*0.5);
+}
+
+function stars(s){const r=s/Q_PER_LV;return r>=1?3:r>=.8?2:r>=.6?1:0;}
+function starStr(s){const n=stars(s);return'⭐'.repeat(n)+'☆'.repeat(3-n);}
+
+// ── question generators ──────────────────────────────────────
+function mathQ(lvl){
+  if(lvl<=2){
+    const a=rand(1,12),b=rand(1,12);
+    const op=rand(0,1);
+    if(op){const ans=a+b;return{cat:'Math 🔢',q:`${a} + ${b} = ?`,a:ans,opts:numOpts(ans,0,30),hint:`Count up from ${a}!`};}
+    else{const big=Math.max(a,b),sm=Math.min(a,b),ans=big-sm;return{cat:'Math 🔢',q:`${big} − ${sm} = ?`,a:ans,opts:numOpts(ans,0,20),hint:`Start at ${big} and count down ${sm}!`};}
+  } else if(lvl<=4){
+    const a=rand(2,9),b=rand(2,9),ans=a*b;
+    return{cat:'Math 🔢',q:`${a} × ${b} = ?`,a:ans,opts:numOpts(ans,1,100),hint:`Add ${a} together, ${b} times!`};
+  } else {
+    const b=rand(2,9),ans=rand(2,9),big=b*ans;
+    return{cat:'Math 🔢',q:`${big} ÷ ${b} = ?`,a:ans,opts:numOpts(ans,1,20),hint:`How many times does ${b} go into ${big}?`};
+  }
+}
+
+function flagQ(){
+  const available=FLAGS.filter(f=>!usedFlags.includes(f.name));
+  const src=available.length>=4?available:FLAGS;
+  const correct=pick(src);
+  usedFlags.push(correct.name);if(usedFlags.length>FLAGS.length-4)usedFlags=[];
+  const others=shuffle(src.filter(f=>f.name!==correct.name)).slice(0,3);
+  const code=flagToCode(correct.flag);
+  return{
+    cat:'Flags 🚩',
+    visual:flagImg(code,correct.name),
+    q:'Which country does this flag belong to?',
+    a:correct.name,
+    opts:shuffle([correct,...others]).map(f=>f.name),
+    hint:`Look at the colours and pattern carefully!`,
+  };
+}
+
+function geoQ(){
+  const available=CAPS.filter(c=>!usedCaps.includes(c.c));
+  const src=available.length>=1?available:CAPS;
+  const entry=pick(src);
+  usedCaps.push(entry.c);if(usedCaps.length>CAPS.length-4)usedCaps=[];
+  return{
+    cat:'Geography 🌍',
+    q:`What is the capital city of ${entry.c}?`,
+    a:entry.cap,
+    opts:shuffle([entry.cap,...entry.w.slice(0,3)]),
+    hint:`Think about where in the world ${entry.c} is!`,
+  };
+}
+
+function shapeQ(){
+  const available=SHAPE_QS.filter(s=>!usedShape.includes(s.q));
+  const src=available.length>=1?available:SHAPE_QS;
+  const entry=pick(src);
+  usedShape.push(entry.q);if(usedShape.length>SHAPE_QS.length-4)usedShape=[];
+  return{
+    cat:'Shapes 🔷',
+    q:entry.q,
+    a:entry.a,
+    opts:shuffle([entry.a,...entry.w]),
+    hint:'Think carefully about the shape!',
+  };
+}
+
+function sciQ(){
+  const available=SCI.filter(s=>!usedSci.includes(s.q));
+  const src=available.length>=1?available:SCI;
+  const entry=pick(src);
+  usedSci.push(entry.q);if(usedSci.length>SCI.length-4)usedSci=[];
+  return{
+    cat:'Science 🔬',
+    q:entry.q,
+    a:entry.a,
+    opts:shuffle([entry.a,...entry.w]),
+    hint:entry.hint,
+  };
+}
+
+function buildDeck(lvl){
+  const def=LEVEL_DEFS[lvl-1];
+  usedFlags=[];usedCaps=[];usedSci=[];usedShape=[];
+  return shuffle(def.cats.map(cat=>{
+    if(cat==='math')return mathQ(lvl);
+    if(cat==='flag')return flagQ();
+    if(cat==='geo')return geoQ();
+    if(cat==='shape')return shapeQ();
+    return sciQ();
+  }));
+}
+
+// ── UI ───────────────────────────────────────────────────────
+function buildHome(){
+  const xp=save.totalXp||0;
+  const maxXp=LEVEL_DEFS.length*XP_PER_LV*3;
+  document.getElementById('xpBar').style.width=`${Math.min(100,(xp/maxXp)*100)}%`;
+  document.getElementById('xpLabel').textContent=`${xp} XP total`;
+
+  const g=document.getElementById('levelsGrid');g.innerHTML='';
+  LEVEL_DEFS.forEach(def=>{
+    const ok=unlocked(def.n);
+    const p=save.levels[def.n];
+    const ss=p?starStr(p.best):'☆☆☆';
+    const d=document.createElement('div');
+    d.className='level-card'+(ok?'':' locked');
+    d.innerHTML=`<div class="lv-badge">${ok?def.n:'🔒'}</div>
+      <div class="lv-info">
+        <div class="lv-name">${def.name}</div>
+        <div class="lv-tags">${def.tags}</div>
+        <div class="lv-stars">${ss}</div>
+      </div>`;
+    d.onclick=()=>{
+      if(!ok){toast('Finish the previous level first! 🔒');return;}
+      startLevel(def.n);
+    };
+    g.appendChild(d);
+  });
+}
+
+function toast(msg){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border:4px solid #1E1B4B;border-radius:20px;box-shadow:5px 5px 0 #1E1B4B;padding:22px 28px;font-family:Fredoka;font-size:17px;font-weight:700;text-align:center;z-index:999;max-width:280px;';
+  el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2000);
+}
+
+function startLevel(n){
+  curLv=n;qIdx=0;score=0;busy=false;
+  deck=buildDeck(n);
+  document.getElementById('scoreEl').textContent='0';
+  document.getElementById('quizTitle').textContent='Level '+n;
+  showScreen('quizScreen');
+  nextQ();
+}
+
+function nextQ(){
+  if(qIdx>=deck.length){endLevel();return;}
+  curQ=deck[qIdx++];busy=false;
+
+  document.getElementById('progBar').style.width=`${((qIdx-1)/Q_PER_LV)*100}%`;
+  document.getElementById('hintBubble').style.display='none';
+  document.getElementById('hintBtn').textContent='💡 Hint?';
+  document.getElementById('hintBtn').disabled=false;
+
+  // category tag
+  const tag=document.getElementById('catTag');
+  tag.textContent=curQ.cat;
+  tag.className='cat-tag cat-'+curQ.cat.split(' ')[0].toLowerCase();
+
+  // visual
+  const vb=document.getElementById('visualBox');
+  if(curQ.visual){vb.style.display='flex';vb.innerHTML=curQ.visual;}
+  else{vb.style.display='none';vb.innerHTML='';}
+
+  document.getElementById('qText').textContent=curQ.q;
+
+  // options
+  const oe=document.getElementById('optsEl');oe.innerHTML='';
+  curQ.opts.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='opt';b.textContent=String(opt);
+    b.onclick=()=>onAnswer(b,opt,curQ.a);
+    oe.appendChild(b);
+  });
+}
+
+function onAnswer(btn,chosen,correct){
+  if(busy)return;busy=true;
+  document.getElementById('hintBtn').disabled=true;
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.onclick=null;});
+
+  const ok=String(chosen)===String(correct);
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok){
+    document.querySelectorAll('.opt').forEach(b=>{
+      if(b.textContent===String(correct))b.classList.add('correct');
+    });
+  } else {
+    score++;document.getElementById('scoreEl').textContent=score;
+    spray();celeb(PRAISE[0|Math.random()*PRAISE.length]);
+  }
+  setTimeout(()=>{hideC();nextQ();},ok?1400:1200);
+}
+
+function showHint(){
+  if(!curQ)return;
+  document.getElementById('hintBubble').textContent=curQ.hint||'Think carefully!';
+  document.getElementById('hintBubble').style.display='block';
+  speak(curQ.hint||'Think carefully!');
+  document.getElementById('hintBtn').disabled=true;
+}
+
+function speak(t){
+  if(!window.speechSynthesis)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);u.rate=.88;u.pitch=1.1;speechSynthesis.speak(u);
+}
+
+function endLevel(){
+  const s=stars(score);
+  const xpEarned=score*10;
+  const prev=save.levels[curLv];
+  if(!prev||score>prev.best){
+    save.levels[curLv]={best:score,stars:s};
+    save.totalXp=(save.totalXp||0)+xpEarned;
+    persist();
+  }
+
+  document.getElementById('rScore').textContent=`You got ${score} out of ${Q_PER_LV}!`;
+  document.getElementById('rStars').textContent=starStr(score);
+  document.getElementById('rIcon').textContent=['😔','😊','🌟','🏆'][s];
+  document.getElementById('rTitle').textContent=
+    s===3?'Perfect! 🏆':s===2?'Well done! 🌟':s===1?'Good try! 😊':'Keep practising! 💪';
+  document.getElementById('xpGained').textContent=`+${xpEarned} XP earned!`;
+
+  const nb=document.getElementById('nextBtn');
+  nb.style.display=(curLv<5&&score>=Math.ceil(Q_PER_LV*.5))?'block':'none';
+  if(s===3)spray();
+  showScreen('resultScreen');
+}
+
+function nextLevel(){if(curLv<5)startLevel(curLv+1);}
+function goHome(){buildHome();showScreen('homeScreen');}
+
+function celeb(t){document.getElementById('celebTx').textContent=t;document.getElementById('celebEl').classList.add('show');}
+function hideC(){document.getElementById('celebEl').classList.remove('show');}
+
+function spray(){
+  const cols=['#FF9800','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#FF6B9D','#5C6BC0'];
+  const sh=['●','■','▲','★','♦'];
+  for(let i=0;i<22;i++){
+    const p=document.createElement('div');p.className='confetti-piece';
+    p.textContent=sh[0|Math.random()*sh.length];
+    p.style.cssText=`left:${Math.random()*100}%;font-size:${12+Math.random()*14}px;color:${cols[0|Math.random()*cols.length]};animation-duration:${.9+Math.random()*.8}s;animation-delay:${Math.random()*.25}s`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),2000);
+  }
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');window.scrollTo(0,0);
+}
+
+buildHome();
+</script>
+</body>
+</html>

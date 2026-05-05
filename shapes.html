@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Shape Explorer 🔷</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F3E8FF;--ink:#1E1B4B;--purple:#7C3AED;--green:#95E06C;--yellow:#FFD93D;--pink:#FF6B9D;--orange:#FF9A3C;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{height:100%;}
+body{
+  min-height:100%;overflow-y:auto;font-family:'Fredoka',sans-serif;
+  background:var(--bg);color:var(--ink);
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;padding-bottom:32px;
+  background-image:
+    radial-gradient(circle at 10% 20%,rgba(124,58,237,.18) 0%,transparent 38%),
+    radial-gradient(circle at 90% 80%,rgba(149,224,108,.15) 0%,transparent 42%);
+}
+.screen{width:100%;max-width:500px;display:none;flex-direction:column;align-items:center;padding:0 16px 16px;}
+.screen.active{display:flex;}
+.topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px;}
+.icon-btn{
+  background:white;border:3px solid var(--ink);border-radius:50%;
+  width:44px;height:44px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s;font-family:inherit;
+}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:20px;}
+.home-icon{font-size:80px;line-height:1;margin:10px 0 6px;animation:bob 2.4s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.home-title{font-family:'Bowlby One',sans-serif;font-size:30px;text-align:center;color:var(--purple);text-shadow:3px 3px 0 var(--ink);}
+.home-sub{font-size:15px;font-weight:600;color:#999;text-align:center;margin:4px 0 20px;}
+.levels-grid{display:flex;flex-direction:column;gap:12px;width:100%;max-width:400px;}
+.level-card{
+  background:white;border:4px solid var(--ink);border-radius:20px;
+  box-shadow:5px 5px 0 var(--ink);padding:16px 18px;cursor:pointer;
+  transition:transform .12s,box-shadow .12s;
+  display:flex;align-items:center;gap:14px;
+}
+.level-card:hover{transform:translateY(-3px);box-shadow:5px 8px 0 var(--ink);}
+.level-card:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+.level-card.locked{opacity:.55;cursor:not-allowed;}
+.level-card.locked:hover{transform:none;box-shadow:5px 5px 0 var(--ink);}
+.level-badge{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--purple);color:white;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bowlby One',sans-serif;font-size:24px;
+  border:3px solid var(--ink);flex-shrink:0;
+}
+.level-card.locked .level-badge{background:#bbb;}
+.level-info{flex:1;}
+.level-name{font-family:'Bowlby One',sans-serif;font-size:18px;}
+.level-desc{font-size:12px;font-weight:600;color:#999;margin:2px 0 4px;}
+.level-stars{font-size:20px;letter-spacing:2px;}
+.score-pill{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
+  padding:3px 16px;font-family:'Bowlby One',sans-serif;font-size:20px;
+  box-shadow:3px 3px 0 var(--ink);min-width:52px;text-align:center;
+}
+.prog-wrap{width:100%;max-width:400px;background:#ddd6f7;border-radius:999px;height:12px;margin:2px 0 10px;border:2px solid var(--ink);}
+.prog-bar{height:100%;background:var(--purple);border-radius:999px;transition:width .35s;}
+.shape-display{
+  width:180px;height:180px;
+  background:white;border:4px solid var(--ink);border-radius:22px;
+  box-shadow:6px 6px 0 var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  padding:12px;margin:8px 0 4px;
+}
+.shape-display svg{width:140px;height:140px;}
+.name-display-big{
+  width:100%;max-width:320px;
+  background:white;border:4px solid var(--ink);border-radius:22px;
+  box-shadow:6px 6px 0 var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;margin:8px 0 4px;min-height:90px;
+}
+.name-display-text{font-family:'Bowlby One',sans-serif;font-size:28px;color:var(--purple);text-align:center;}
+.hint-zone{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:6px;margin:4px 0 2px;}
+.hint-btn{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 18px;font-size:14px;font-weight:700;
+  cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s;color:var(--ink);font-family:inherit;
+}
+.hint-btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.hint-btn:disabled{opacity:.45;cursor:default;}
+.hint-bubble{
+  background:#fffde7;border:2px solid #f5c518;border-radius:14px;
+  padding:8px 14px;font-size:14px;font-weight:600;text-align:center;
+  max-width:340px;animation:fadeUp .3s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.q-label{font-size:12px;font-weight:700;color:#bbb;margin:4px 0 6px;text-transform:uppercase;letter-spacing:.5px;}
+.opts-text{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:400px;}
+.opt-t{
+  border:4px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;padding:14px 8px;background:white;
+  font-family:'Fredoka',sans-serif;font-size:17px;font-weight:700;
+  color:var(--ink);text-align:center;transition:transform .1s,box-shadow .1s;
+}
+.opt-t:active:not([disabled]){transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.opt-t.correct{background:var(--green)!important;border-color:var(--ink)!important;}
+.opt-t.wrong{background:#ffb3b3!important;border-color:#e74c3c!important;}
+.opts-shape{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:400px;}
+.opt-s{
+  border:4px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;padding:10px;background:white;
+  display:flex;align-items:center;justify-content:center;
+  min-height:110px;transition:transform .1s,box-shadow .1s;
+}
+.opt-s svg{width:82px;height:82px;}
+.opt-s:active:not([disabled]){transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.opt-s.correct{background:var(--green)!important;}
+.opt-s.wrong{background:#ffb3b3!important;border-color:#e74c3c!important;}
+#celebEl{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:100;opacity:0;transition:opacity .25s;}
+#celebEl.show{opacity:1;}
+.celeb-em{font-size:88px;animation:popIn .35s cubic-bezier(.36,.07,.19,.97);}
+.celeb-tx{font-family:'Bowlby One',sans-serif;font-size:30px;color:var(--purple);text-shadow:3px 3px 0 var(--ink);margin-top:6px;}
+@keyframes popIn{0%{transform:scale(.3)rotate(-15deg)}70%{transform:scale(1.15)rotate(3deg)}100%{transform:scale(1)}}
+.confetti-piece{position:fixed;top:-10px;pointer-events:none;z-index:200;animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(110vh)rotate(720deg);opacity:0;}}
+.result-icon{font-size:76px;margin:20px 0 8px;}
+.result-title{font-family:'Bowlby One',sans-serif;font-size:30px;color:var(--purple);text-shadow:3px 3px 0 var(--ink);text-align:center;}
+.result-score{font-size:19px;font-weight:700;margin:8px 0 2px;text-align:center;}
+.result-stars{font-size:44px;letter-spacing:4px;margin:6px 0 20px;}
+.big-btn{
+  width:100%;max-width:300px;padding:15px;
+  font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;
+  border:4px solid var(--ink);border-radius:18px;background:var(--green);
+  box-shadow:5px 5px 0 var(--ink);cursor:pointer;color:var(--ink);
+  transition:transform .1s,box-shadow .1s;margin-bottom:10px;
+}
+.big-btn:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+.big-btn.white{background:white;}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="screen active" id="homeScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="window.location.href='index.html'">←</button>
+    <div class="topbar-title">Shape Explorer</div>
+    <div style="width:44px"></div>
+  </div>
+  <div class="home-icon">🔷</div>
+  <div class="home-title">Shape Explorer!</div>
+  <p class="home-sub">How many shapes do you know?</p>
+  <div class="levels-grid" id="levelsGrid"></div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="quizScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="topbar-title" id="quizTitle">Level 1</div>
+    <div class="score-pill" id="scoreEl">0</div>
+  </div>
+  <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
+  <div class="shape-display" id="shapeDisplay" style="display:none"></div>
+  <div class="name-display-big" id="nameDisplay" style="display:none">
+    <div class="name-display-text" id="nameText"></div>
+  </div>
+  <div class="hint-zone">
+    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 Hint?</button>
+    <div class="hint-bubble" id="hintBubble" style="display:none"></div>
+  </div>
+  <div class="q-label" id="qLabel"></div>
+  <div id="optsArea"></div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="resultScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="topbar-title">Shape Explorer</div>
+    <div style="width:44px"></div>
+  </div>
+  <div class="result-icon" id="rIcon">🎉</div>
+  <div class="result-title" id="rTitle">Well done!</div>
+  <div class="result-score" id="rScore"></div>
+  <div class="result-stars" id="rStars"></div>
+  <button class="big-btn" id="nextBtn" onclick="nextLevel()" style="display:none">Next Level →</button>
+  <button class="big-btn" onclick="startLevel(currentLevel)">Play Again 🔁</button>
+  <button class="big-btn white" onclick="goHome()">Home 🏠</button>
+</div>
+
+<div id="celebEl">
+  <div class="celeb-em">⭐</div>
+  <div class="celeb-tx" id="celebTx">Brilliant!</div>
+</div>
+
+<script>
+const SHAPES=[
+  {name:'Circle',      lv:1,sides:0, hint:'No corners at all — perfectly round! Like the sun ☀️ or a pizza 🍕.',
+   svg:c=>`<svg viewBox="0 0 120 120"><ellipse cx="60" cy="60" rx="52" ry="52" fill="${c}" stroke="#1E1B4B" stroke-width="4"/></svg>`},
+  {name:'Square',      lv:1,sides:4, hint:'4 equal sides and 4 corners. Like a window 🪟 or a dice face 🎲.',
+   svg:c=>`<svg viewBox="0 0 120 120"><rect x="8" y="8" width="104" height="104" fill="${c}" stroke="#1E1B4B" stroke-width="4" rx="2"/></svg>`},
+  {name:'Triangle',    lv:1,sides:3, hint:'3 sides and 3 corners. Like a mountain ⛰️ or a pizza slice!',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="60,6 114,114 6,114" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Rectangle',   lv:1,sides:4, hint:'4 sides — 2 long and 2 short. Like a phone 📱 or a door 🚪.',
+   svg:c=>`<svg viewBox="0 0 120 120"><rect x="4" y="24" width="112" height="72" fill="${c}" stroke="#1E1B4B" stroke-width="4" rx="2"/></svg>`},
+  {name:'Pentagon',    lv:2,sides:5, hint:'5 sides and 5 corners — like the famous Pentagon building! ⬠',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="60,8 112,44 92,108 28,108 8,44" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Hexagon',     lv:2,sides:6, hint:'6 sides and 6 corners — just like a honeycomb cell 🍯!',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="60,8 105,33 105,87 60,112 15,87 15,33" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Octagon',     lv:2,sides:8, hint:'8 sides and 8 corners. You can see one on a red stop sign 🛑!',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="60,8 97,23 112,60 97,97 60,112 23,97 8,60 23,23" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Oval',        lv:2,sides:0, hint:'Like a stretched circle — no corners. Like an egg 🥚 or a rugby ball!',
+   svg:c=>`<svg viewBox="0 0 120 120"><ellipse cx="60" cy="60" rx="55" ry="38" fill="${c}" stroke="#1E1B4B" stroke-width="4"/></svg>`},
+  {name:'Diamond',     lv:2,sides:4, hint:'4 equal sides, standing on a point — like a gem 💎 or a kite 🪁!',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="60,6 114,60 60,114 6,60" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Star',        lv:2,sides:5, hint:'5 points going outward — like stars in the night sky ⭐!',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="60,8 73,42 109,44 81,67 91,102 60,82 29,102 39,67 11,44 47,42" fill="${c}" stroke="#1E1B4B" stroke-width="3" stroke-linejoin="round"/></svg>`},
+  {name:'Heart',       lv:3,sides:0, hint:'The symbol of love ❤️ — two bumps on top, a point at the bottom!',
+   svg:c=>`<svg viewBox="0 0 120 120"><path d="M60,92 C15,67 8,32 30,19 C43,11 56,23 60,32 C64,23 77,11 90,19 C112,32 105,67 60,92 Z" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Trapezoid',   lv:3,sides:4, hint:'4 sides — the top and bottom run parallel, like a bucket 🪣!',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="22,102 98,102 80,18 40,18" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Parallelogram',lv:3,sides:4,hint:'4 sides — like a rectangle that leans to one side!',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="30,106 108,106 90,14 12,14" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Arrow',       lv:3,sides:7, hint:'7 sides — it points in a direction like a signpost ➡️!',
+   svg:c=>`<svg viewBox="0 0 120 120"><polygon points="8,45 72,45 72,20 114,60 72,100 72,75 8,75" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+  {name:'Crescent',    lv:3,sides:0, hint:'Curved like the moon 🌙 — a slice taken from a circle!',
+   svg:c=>`<svg viewBox="0 0 120 120"><path d="M62,8 C30,8 6,30 6,60 C6,90 30,112 62,112 C46,104 34,84 34,60 C34,36 46,16 62,8 Z" fill="${c}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/></svg>`},
+];
+
+const COLORS=['#FF6B9D','#FF9A3C','#FFD93D','#4ECDC4','#5C6BC0','#B388EB','#95E06C','#e74c3c','#00bcd4'];
+const PRAISE=['Amazing! 🎉','Brilliant! ⭐','Superstar! 🌟','Nailed it! 🔥','Fantastic! 🎊','You got it! ✅'];
+const Q_COUNT={1:10,2:12,3:15};
+
+let prog=JSON.parse(localStorage.getItem('kg_shapes')||'{}');
+let curLv=1,qIdx=0,score=0,busy=false,curQ=null,totalQ=10,colorIdx=0;
+
+function col(){return COLORS[colorIdx++%COLORS.length];}
+
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function unlocked(lv){
+  if(lv===1)return true;
+  const p=prog[lv-1];
+  return p&&p.best>=(Q_COUNT[lv-1]*0.5);
+}
+
+function stars(s,t){const r=s/t;return r>=1?3:r>=.8?2:r>=.6?1:0;}
+function starStr(s,t){const n=stars(s,t);return'⭐'.repeat(n)+'☆'.repeat(3-n);}
+
+function buildHome(){
+  const g=document.getElementById('levelsGrid');
+  g.innerHTML='';
+  [{lv:1,name:'Basic Shapes',desc:'Circle · Square · Triangle · Rectangle'},
+   {lv:2,name:'More Shapes',desc:'Pentagon · Hexagon · Octagon · Oval · Diamond · Star'},
+   {lv:3,name:'Shape Master',desc:'Heart · Trapezoid · Parallelogram · Arrow · Crescent + all'},
+  ].forEach(l=>{
+    const ok=unlocked(l.lv);
+    const p=prog[l.lv];
+    const ss=p?starStr(p.best,Q_COUNT[l.lv]):'☆☆☆';
+    const d=document.createElement('div');
+    d.className='level-card'+(ok?'':' locked');
+    d.innerHTML=`<div class="level-badge">${ok?l.lv:'🔒'}</div>
+      <div class="level-info">
+        <div class="level-name">${l.name}</div>
+        <div class="level-desc">${l.desc}</div>
+        <div class="level-stars">${ss}</div>
+      </div>`;
+    d.onclick=()=>{
+      if(!ok){toast('Finish the previous level to unlock! 🔒');return;}
+      startLevel(l.lv);
+    };
+    g.appendChild(d);
+  });
+}
+
+function toast(msg){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border:4px solid #1E1B4B;border-radius:20px;box-shadow:5px 5px 0 #1E1B4B;padding:22px 28px;font-family:Fredoka;font-size:17px;font-weight:700;text-align:center;z-index:999;max-width:280px;';
+  el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2000);
+}
+
+function startLevel(lv){
+  curLv=lv;totalQ=Q_COUNT[lv];
+  qIdx=0;score=0;busy=false;colorIdx=0;
+  document.getElementById('scoreEl').textContent='0';
+  document.getElementById('quizTitle').textContent='Level '+lv;
+  showScreen('quizScreen');
+  nextQ();
+}
+
+function genQ(){
+  const pool=SHAPES.filter(s=>s.lv<=curLv);
+  const correct=pool[0|Math.random()*pool.length];
+  const others=shuffle(pool.filter(s=>s.name!==correct.name)).slice(0,3);
+  const c=col();
+
+  const canSides=correct.sides>0;
+  const typePool=curLv===1?[0,1]:(canSides?[0,0,1,1,2]:[0,0,1,1]);
+  const type=typePool[0|Math.random()*typePool.length];
+
+  if(type===0){
+    return{type:0,svg:correct.svg(c),question:'What shape is this?',
+      hint:correct.hint,options:shuffle([correct,...others]).map(s=>s.name),answer:correct.name};
+  }
+  if(type===1){
+    return{type:1,question:`Find the ${correct.name}!`,hint:correct.hint,
+      optShapes:shuffle([correct,...others]),answer:correct.name};
+  }
+  // type 2: how many sides
+  const allSides=[...new Set(pool.filter(s=>s.sides>0).map(s=>s.sides))];
+  const wrongs=shuffle(allSides.filter(x=>x!==correct.sides)).slice(0,3);
+  return{type:2,svg:correct.svg(c),question:`How many sides does a ${correct.name} have?`,
+    hint:correct.hint,options:shuffle([correct.sides,...wrongs]),answer:correct.sides};
+}
+
+function nextQ(){
+  if(qIdx>=totalQ){endLevel();return;}
+  curQ=genQ();qIdx++;busy=false;
+
+  document.getElementById('progBar').style.width=`${((qIdx-1)/totalQ)*100}%`;
+  document.getElementById('hintBubble').style.display='none';
+  document.getElementById('hintBtn').textContent='💡 Hint?';
+  document.getElementById('hintBtn').disabled=false;
+
+  const sd=document.getElementById('shapeDisplay');
+  const nd=document.getElementById('nameDisplay');
+  const oa=document.getElementById('optsArea');
+  oa.innerHTML='';
+
+  if(curQ.type===0||curQ.type===2){
+    sd.style.display='flex';nd.style.display='none';
+    sd.innerHTML=curQ.svg;
+    document.getElementById('qLabel').textContent=curQ.question;
+    const g=document.createElement('div');g.className='opts-text';
+    curQ.options.forEach(opt=>{
+      const b=document.createElement('button');
+      b.className='opt-t';b.textContent=String(opt);
+      b.onclick=()=>answer(b,opt,curQ.answer);
+      g.appendChild(b);
+    });
+    oa.appendChild(g);
+  } else {
+    sd.style.display='none';nd.style.display='flex';
+    document.getElementById('nameText').textContent=curQ.answer;
+    document.getElementById('qLabel').textContent=curQ.question;
+    const g=document.createElement('div');g.className='opts-shape';
+    curQ.optShapes.forEach(sh=>{
+      const b=document.createElement('button');
+      b.className='opt-s';b.dataset.name=sh.name;
+      b.innerHTML=sh.svg(col());
+      b.onclick=()=>answer(b,sh.name,curQ.answer);
+      g.appendChild(b);
+    });
+    oa.appendChild(g);
+  }
+}
+
+function answer(btn,chosen,correct){
+  if(busy)return;busy=true;
+  document.getElementById('hintBtn').disabled=true;
+  document.querySelectorAll('.opt-t,.opt-s').forEach(b=>{b.disabled=true;b.onclick=null;});
+
+  const ok=String(chosen)===String(correct);
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok){
+    document.querySelectorAll('.opt-t,.opt-s').forEach(b=>{
+      if(String(b.dataset.name||b.textContent)===String(correct))b.classList.add('correct');
+    });
+  } else {
+    score++;document.getElementById('scoreEl').textContent=score;
+    spray();celeb(PRAISE[0|Math.random()*PRAISE.length]);
+  }
+  setTimeout(()=>{hideC();nextQ();},ok?1400:1200);
+}
+
+function showHint(){
+  if(!curQ)return;
+  document.getElementById('hintBubble').textContent=curQ.hint;
+  document.getElementById('hintBubble').style.display='block';
+  speak(curQ.hint);
+  document.getElementById('hintBtn').disabled=true;
+}
+
+function speak(t){
+  if(!window.speechSynthesis)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);u.rate=.88;u.pitch=1.1;speechSynthesis.speak(u);
+}
+
+function endLevel(){
+  const s=stars(score,totalQ);
+  if(!prog[curLv]||score>prog[curLv].best){
+    prog[curLv]={best:score,stars:s};
+    localStorage.setItem('kg_shapes',JSON.stringify(prog));
+  }
+  document.getElementById('rScore').textContent=`You got ${score} out of ${totalQ}!`;
+  document.getElementById('rStars').textContent=starStr(score,totalQ);
+  document.getElementById('rIcon').textContent=['😔','😊','🌟','🏆'][s];
+  document.getElementById('rTitle').textContent=
+    s===3?'Perfect! 🏆':s===2?'Well done! 🌟':s===1?'Good try! 😊':'Keep practising! 💪';
+  const nb=document.getElementById('nextBtn');
+  nb.style.display=(curLv<3&&score>=Math.ceil(totalQ*.5))?'block':'none';
+  if(s===3)spray();
+  showScreen('resultScreen');
+}
+
+function nextLevel(){if(curLv<3)startLevel(curLv+1);}
+function goHome(){buildHome();showScreen('homeScreen');}
+
+function celeb(t){document.getElementById('celebTx').textContent=t;document.getElementById('celebEl').classList.add('show');}
+function hideC(){document.getElementById('celebEl').classList.remove('show');}
+
+function spray(){
+  const cols=['#7C3AED','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#FF6B9D'];
+  const sh=['●','■','▲','★'];
+  for(let i=0;i<20;i++){
+    const p=document.createElement('div');p.className='confetti-piece';
+    p.textContent=sh[0|Math.random()*sh.length];
+    p.style.cssText=`left:${Math.random()*100}%;font-size:${12+Math.random()*14}px;color:${cols[0|Math.random()*cols.length]};animation-duration:${.9+Math.random()*.8}s;animation-delay:${Math.random()*.25}s`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),2000);
+  }
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');window.scrollTo(0,0);
+}
+
+buildHome();
+</script>
+</body>
+</html>

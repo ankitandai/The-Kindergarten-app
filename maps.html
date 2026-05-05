@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Maps Safari 🗺️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson@3/dist/topojson.min.js"></script>
+<style>
+:root{--bg:#FFF4E0;--ink:#2B2A4C;--pink:#FF6B9D;--yellow:#FFD93D;--blue:#4ECDC4;--green:#95E06C;--orange:#FF9A3C;--purple:#B388EB;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{height:100%;}
+body{
+  min-height:100%;overflow-y:auto;font-family:'Fredoka',sans-serif;
+  background:var(--bg);color:var(--ink);
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;
+  padding-bottom:32px;
+  background-image:
+    radial-gradient(circle at 10% 20%,rgba(255,217,61,.28) 0%,transparent 38%),
+    radial-gradient(circle at 90% 80%,rgba(78,205,196,.22) 0%,transparent 42%),
+    radial-gradient(circle at 50% 50%,rgba(255,107,157,.13) 0%,transparent 52%);
+}
+.screen{width:100%;max-width:500px;display:none;flex-direction:column;align-items:center;padding:0 16px 16px;}
+.screen.active{display:flex;}
+
+/* ── topbar ── */
+.topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px;}
+.icon-btn{
+  background:white;border:3px solid var(--ink);border-radius:50%;
+  width:44px;height:44px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s;font-family:inherit;
+}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:20px;}
+.score-pill{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
+  padding:3px 16px;font-family:'Bowlby One',sans-serif;font-size:20px;
+  box-shadow:3px 3px 0 var(--ink);min-width:52px;text-align:center;
+}
+
+/* ── home ── */
+.home-globe{font-size:88px;line-height:1;margin:14px 0 8px;animation:bob 2.4s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.home-title{font-family:'Bowlby One',sans-serif;font-size:30px;text-align:center;color:var(--pink);text-shadow:3px 3px 0 var(--ink);}
+.home-sub{font-size:16px;font-weight:600;color:#999;text-align:center;margin:6px 0 4px;max-width:300px;}
+.load-msg{font-size:14px;color:#bbb;margin:4px 0 18px;text-align:center;transition:opacity .5s;}
+.play-btn{
+  width:100%;max-width:300px;padding:18px;
+  font-family:'Fredoka',sans-serif;font-size:22px;font-weight:700;
+  border:4px solid var(--ink);border-radius:20px;background:var(--green);
+  box-shadow:5px 5px 0 var(--ink);cursor:pointer;color:var(--ink);
+  transition:transform .1s,box-shadow .1s;
+}
+.play-btn:active:not(:disabled){transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+.play-btn:disabled{opacity:.4;cursor:default;}
+
+/* ── quiz layout ── */
+.cont-hint{font-size:15px;font-weight:700;color:#888;margin:2px 0 8px;display:flex;align-items:center;gap:5px;}
+.map-wrap{
+  width:100%;max-width:310px;aspect-ratio:1/1;
+  background:white;border:4px solid var(--ink);border-radius:22px;
+  box-shadow:6px 6px 0 var(--ink);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+#mapSvg{width:100%;height:100%;display:block;}
+
+/* ── hint zone ── */
+.hint-zone{width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0 2px;}
+.hint-btn{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 18px;font-family:'Fredoka',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s;
+  color:var(--ink);
+}
+.hint-btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.hint-btn:disabled{opacity:.45;cursor:default;}
+.hint-bubble{
+  background:#fffde7;border:2px solid #f5c518;border-radius:14px;
+  padding:8px 14px;font-size:14px;font-weight:600;text-align:center;
+  max-width:320px;box-shadow:2px 2px 0 rgba(0,0,0,.1);
+  animation:fadeUp .3s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── options ── */
+.q-label{font-size:13px;font-weight:700;color:#bbb;margin:6px 0 6px;text-transform:uppercase;letter-spacing:.5px;}
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px;}
+.opt-btn{
+  border:4px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;padding:11px 8px;background:white;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  transition:transform .1s,box-shadow .1s;
+}
+.opt-btn:active:not([disabled]){transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.opt-flag{font-size:26px;line-height:1;}
+.opt-name{font-family:'Bowlby One',sans-serif;font-size:12px;line-height:1.25;text-align:center;}
+.opt-btn.correct{background:var(--green)!important;border-color:var(--ink)!important;}
+.opt-btn.wrong{background:#ffb3b3!important;border-color:#e74c3c!important;}
+
+/* ── info panel (slide-up sheet) ── */
+.panel-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.38);
+  z-index:88;display:none;cursor:pointer;
+}
+.panel-overlay.show{display:block;}
+.info-panel{
+  position:fixed;bottom:0;left:50%;
+  transform:translateX(-50%) translateY(102%);
+  width:100%;max-width:500px;
+  background:white;border-top:4px solid var(--ink);
+  border-radius:28px 28px 0 0;box-shadow:0 -6px 28px rgba(0,0,0,.18);
+  padding:10px 20px 32px;z-index:89;
+  transition:transform .45s cubic-bezier(.34,1.08,.64,1);
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.info-panel.show{transform:translateX(-50%) translateY(0);}
+.panel-handle{width:44px;height:5px;background:#ddd;border-radius:999px;margin-bottom:4px;}
+.panel-header{
+  width:100%;display:flex;align-items:center;gap:14px;
+  padding-bottom:10px;border-bottom:2px solid #f0f0f0;
+}
+.panel-flag{font-size:52px;line-height:1;}
+.panel-name{font-family:'Bowlby One',sans-serif;font-size:24px;line-height:1.1;}
+.panel-result{font-size:16px;font-weight:700;margin-top:3px;}
+.panel-result.ok {color:#27ae60;}
+.panel-result.bad{color:#e74c3c;}
+.facts-grid{width:100%;display:flex;flex-direction:column;gap:7px;}
+.fact-row{
+  display:flex;align-items:center;gap:10px;
+  background:#fafafa;border-radius:12px;padding:8px 12px;
+}
+.fact-icon{font-size:20px;width:26px;text-align:center;flex-shrink:0;}
+.fact-label{font-size:13px;font-weight:700;color:#aaa;width:58px;flex-shrink:0;}
+.fact-val{font-size:15px;font-weight:600;color:var(--ink);}
+.panel-known{
+  width:100%;background:linear-gradient(135deg,#fff9e6,#fff0f5);
+  border:2px solid #ffd93d;border-radius:14px;
+  padding:10px 14px;font-size:14px;font-weight:600;color:var(--ink);
+  text-align:center;line-height:1.5;
+}
+.next-btn{
+  width:100%;max-width:300px;padding:14px;
+  font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;
+  border:4px solid var(--ink);border-radius:16px;background:var(--green);
+  box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:var(--ink);
+  transition:transform .1s,box-shadow .1s;
+}
+.next-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+
+/* ── celebration ── */
+#celebEl{
+  position:fixed;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  pointer-events:none;z-index:100;opacity:0;transition:opacity .25s;
+}
+#celebEl.show{opacity:1;}
+.celeb-em{font-size:90px;animation:popIn .35s cubic-bezier(.36,.07,.19,.97);}
+.celeb-tx{font-family:'Bowlby One',sans-serif;font-size:32px;color:var(--pink);text-shadow:3px 3px 0 var(--ink);margin-top:8px;}
+@keyframes popIn{0%{transform:scale(.3)rotate(-15deg)}70%{transform:scale(1.15)rotate(3deg)}100%{transform:scale(1)}}
+.confetti-piece{position:fixed;top:-10px;pointer-events:none;z-index:200;animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(110vh)rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══ -->
+<div class="screen active" id="homeScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="window.location.href='index.html'">←</button>
+    <div class="topbar-title">Maps Safari</div>
+    <div style="width:44px"></div>
+  </div>
+  <div class="home-globe">🗺️</div>
+  <div class="home-title">Maps Safari!</div>
+  <p class="home-sub">Look at the country shape — can you name it?</p>
+  <p class="load-msg" id="loadMsg">Loading map data…</p>
+  <button class="play-btn" id="playBtn" onclick="startGame()" disabled>Let's Explore! 🌍</button>
+</div>
+
+<!-- ══ QUIZ ══ -->
+<div class="screen" id="quizScreen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="topbar-title">🗺️ Maps</div>
+    <div class="score-pill" id="scoreEl">0</div>
+  </div>
+  <div class="cont-hint" id="contHint"></div>
+  <div class="map-wrap"><svg id="mapSvg"></svg></div>
+  <div class="hint-zone">
+    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 Hint?</button>
+    <div class="hint-bubble" id="hintBubble" style="display:none"></div>
+  </div>
+  <div class="q-label">Which country is this?</div>
+  <div class="opts-grid" id="optsGrid"></div>
+</div>
+
+<!-- ══ INFO PANEL ══ -->
+<div class="panel-overlay" id="panelOverlay" onclick="nextRound()"></div>
+<div class="info-panel" id="infoPanel">
+  <div class="panel-handle"></div>
+  <div class="panel-header">
+    <div class="panel-flag" id="panelFlag">🇮🇳</div>
+    <div>
+      <div class="panel-name"   id="panelName">India</div>
+      <div class="panel-result" id="panelResult">✅ Correct!</div>
+    </div>
+  </div>
+  <div class="facts-grid">
+    <div class="fact-row"><span class="fact-icon">🏛️</span><span class="fact-label">Capital</span><span class="fact-val" id="fCapital">—</span></div>
+    <div class="fact-row"><span class="fact-icon">🐾</span><span class="fact-label">Animal</span><span class="fact-val" id="fAnimal">—</span></div>
+    <div class="fact-row"><span class="fact-icon">🐦</span><span class="fact-label">Bird</span><span class="fact-val" id="fBird">—</span></div>
+    <div class="fact-row"><span class="fact-icon">🏆</span><span class="fact-label">Sport</span><span class="fact-val" id="fSport">—</span></div>
+  </div>
+  <div class="panel-known" id="panelKnown"></div>
+  <button class="next-btn" onclick="nextRound()">Next Country →</button>
+</div>
+
+<!-- ══ CELEBRATION ══ -->
+<div id="celebEl">
+  <div class="celeb-em">🎉</div>
+  <div class="celeb-tx" id="celebTx">Brilliant!</div>
+</div>
+
+<script>
+const COUNTRIES=[
+  // ── Asia ──────────────────────────────────────────────────────────
+  {id:356,name:'India',flag:'🇮🇳',cont:'Asia',
+   hints:["I'm shaped like a triangle pointing south into the Indian Ocean",
+          "The Himalayas run along my northern border and the Taj Mahal is inside me"],
+   capital:'New Delhi',animal:'🐯 Bengal Tiger',bird:'🦚 Indian Peacock',
+   sport:'🏏 Cricket',knownFor:'Taj Mahal, Yoga, Bollywood & Spicy food'},
+
+  {id:156,name:'China',flag:'🇨🇳',cont:'Asia',
+   hints:["I'm the fourth-largest country in the world",
+          "I built a wall so long you can almost see it from space"],
+   capital:'Beijing',animal:'🐼 Giant Panda',bird:'🦩 Red-crowned Crane',
+   sport:'🏓 Table Tennis',knownFor:'Great Wall, Giant Pandas, Noodles & Kung Fu'},
+
+  {id:392,name:'Japan',flag:'🇯🇵',cont:'Asia',
+   hints:["I'm a chain of islands in the Pacific Ocean",
+          "Mount Fuji, a nearly perfect volcanic cone, is my most famous landmark"],
+   capital:'Tokyo',animal:'🐒 Japanese Macaque',bird:'🐦 Green Pheasant',
+   sport:'🥋 Judo & Sumo',knownFor:'Sushi, Anime, Cherry Blossoms & Mount Fuji'},
+
+  {id:643,name:'Russia',flag:'🇷🇺',cont:'Asia',
+   hints:["I'm the largest country in the world — I span 11 time zones!",
+          "My famous city of Moscow has a beautiful fortress called the Kremlin"],
+   capital:'Moscow',animal:'🐻 Siberian Bear',bird:'🦅 Tawny Eagle',
+   sport:'🏒 Ice Hockey',knownFor:'Matryoshka Dolls, Space Rockets, Ballet & Deep Snow'},
+
+{id:144,name:'Sri Lanka',flag:'🇱🇰',cont:'Asia',
+   hints:["I'm a teardrop-shaped island just south of India",
+          "I'm one of the world's top producers of tea, grown on misty green hillsides"],
+   capital:'Colombo',animal:'🐘 Asian Elephant',bird:'🐓 Sri Lanka Junglefowl',
+   sport:'🏏 Cricket',knownFor:'Ceylon Tea, Ancient Temples, Spices & Gems'},
+
+  {id:764,name:'Thailand',flag:'🇹🇭',cont:'Asia',
+   hints:["My outline looks a little like an elephant's head",
+          "I have beautiful golden Buddhist temples in almost every city"],
+   capital:'Bangkok',animal:'🐘 Asian Elephant',bird:'🐦 Siamese Fireback',
+   sport:'🥊 Muay Thai',knownFor:'Golden Temples, Elephants, Pad Thai & Beaches'},
+
+  {id:682,name:'Saudi Arabia',flag:'🇸🇦',cont:'Asia',
+   hints:["I sit on a large peninsula with sea on three sides",
+          "The two holiest cities in Islam — Mecca and Medina — are inside my borders"],
+   capital:'Riyadh',animal:'🐪 Arabian Camel',bird:'🦅 Saker Falcon',
+   sport:'⚽ Football',knownFor:'Mecca, Arabian Camels, Oil & Sand Dunes'},
+
+  {id:364,name:'Iran',flag:'🇮🇷',cont:'Asia',
+   hints:["I was once called Persia and ruled a mighty ancient empire",
+          "I have both scorching deserts and snow-capped mountains"],
+   capital:'Tehran',animal:'🐆 Asiatic Cheetah',bird:'🐺 Nightingale',
+   sport:'🤼 Wrestling',knownFor:'Ancient Persia, Colourful Carpets & Pomegranates'},
+
+  {id:792,name:'Turkey',flag:'🇹🇷',cont:'Asia',
+   hints:["I sit between two continents — Europe and Asia",
+          "Thousands of hot air balloons float over my region called Cappadocia"],
+   capital:'Ankara',animal:'🐺 Gray Wolf',bird:'🐦 Redwing',
+   sport:'🤼 Oil Wrestling',knownFor:'Baklava, Hagia Sophia & Hot Air Balloons'},
+
+  {id:524,name:'Nepal',flag:'🇳🇵',cont:'Asia',
+   hints:["I'm a small landlocked country tucked between India and China",
+          "Mount Everest — the highest point on Earth — sits on my border"],
+   capital:'Kathmandu',animal:'🐄 Cow',bird:'🐦 Himalayan Monal',
+   sport:'🏔️ Mountaineering',knownFor:'Mount Everest, Yaks, Sherpas & Prayer Flags'},
+
+  {id:704,name:'Vietnam',flag:'🇻🇳',cont:'Asia',
+   hints:["My shape is long and thin, a bit like the letter S",
+          "Ha Long Bay — a sea filled with thousands of limestone islands — is inside me"],
+   capital:'Hanoi',animal:'🐃 Water Buffalo',bird:'🐦 Red-crowned Crane',
+   sport:'⚽ Football',knownFor:'Pho Noodles, Ha Long Bay, Rice Fields & Ao Dai'},
+
+  // ── Europe ────────────────────────────────────────────────────────
+  {id:380,name:'Italy',flag:'🇮🇹',cont:'Europe',
+   hints:["My shape looks exactly like a boot kicking a ball!",
+          "The ancient Colosseum and Vatican City are both inside me"],
+   capital:'Rome',animal:'🐺 Italian Wolf',bird:'🐦 Italian Sparrow',
+   sport:'⚽ Football',knownFor:'Pizza, Pasta, the Colosseum & High Fashion'},
+
+  {id:826,name:'United Kingdom',flag:'🇬🇧',cont:'Europe',
+   hints:["I'm actually a group of islands off the western coast of Europe",
+          "Buckingham Palace and Big Ben are both in my capital city"],
+   capital:'London',animal:'🦁 Lion',bird:'🐦 European Robin',
+   sport:'⚽ Football & 🏏 Cricket',knownFor:'Big Ben, Harry Potter, The Beatles & Tea'},
+
+  {id:250,name:'France',flag:'🇫🇷',cont:'Europe',
+   hints:["My shape is sometimes called a hexagon because I have six roughly equal sides",
+          "The Eiffel Tower in my capital is the most visited landmark on Earth"],
+   capital:'Paris',animal:'🐓 Gallic Rooster',bird:'🐓 Gallic Rooster',
+   sport:'⚽ Football',knownFor:'Eiffel Tower, Croissants, Fine Wines & Fashion'},
+
+  {id:276,name:'Germany',flag:'🇩🇪',cont:'Europe',
+   hints:["I'm right in the heart of Europe, sharing borders with nine countries",
+          "I'm famous for fast cars, fairy-tale castles and the Oktoberfest festival"],
+   capital:'Berlin',animal:'🦅 Black Eagle',bird:'🦅 White Stork',
+   sport:'⚽ Football',knownFor:'Sports Cars, Castles, Sausages & Pretzel Bread'},
+
+  {id:724,name:'Spain',flag:'🇪🇸',cont:'Europe',
+   hints:["I share a large peninsula with Portugal at the south-west corner of Europe",
+          "FC Barcelona and Real Madrid — two of football's greatest clubs — are mine"],
+   capital:'Madrid',animal:'🐂 Bull',bird:'🦅 Spanish Imperial Eagle',
+   sport:'⚽ Football',knownFor:'Flamenco Dancing, Paella, Beaches & FC Barcelona'},
+
+  {id:752,name:'Sweden',flag:'🇸🇪',cont:'Europe',
+   hints:["I'm a long Scandinavian country in northern Europe",
+          "You can see the magical Northern Lights from my skies in winter"],
+   capital:'Stockholm',animal:'🦌 Elk (Moose)',bird:'🐦 Common Blackbird',
+   sport:'⛷️ Skiing',knownFor:'IKEA, ABBA, Vikings, Aurora Borealis & Meatballs'},
+
+  {id:300,name:'Greece',flag:'🇬🇷',cont:'Europe',
+   hints:["I have thousands of beautiful islands scattered in the blue sea",
+          "The ancient Olympic Games were invented here thousands of years ago"],
+   capital:'Athens',animal:'🐬 Dolphin',bird:'🦉 Little Owl',
+   sport:'🏛️ The Olympics',knownFor:'Acropolis, Greek Gods, Olive Oil & Feta Cheese'},
+
+  {id:616,name:'Poland',flag:'🇵🇱',cont:'Europe',
+   hints:["I'm in central Europe and have an ancient forest full of European bison",
+          "The famous composer Chopin was born in my capital city"],
+   capital:'Warsaw',animal:'🦬 European Bison',bird:'🦅 White-tailed Eagle',
+   sport:'⚽ Football',knownFor:'Pierogi Dumplings, Amber Jewellery & Chopin Music'},
+
+  {id:620,name:'Portugal',flag:'🇵🇹',cont:'Europe',
+   hints:["I'm on the far western edge of Europe, right next to the Atlantic Ocean",
+          "Vasco da Gama — the explorer who found the sea route to India — was from my country"],
+   capital:'Lisbon',animal:'🐓 Barcelos Rooster',bird:'🐦 Iberian Magpie',
+   sport:'⚽ Football',knownFor:'Cristiano Ronaldo, Custard Tarts, Fado Music & Cork'},
+
+  {id:578,name:'Norway',flag:'🇳🇴',cont:'Europe',
+   hints:["I'm a long narrow Scandinavian country with a coastline full of deep sea inlets called fjords",
+          "In my northern region in summer the sun never sets — it's called the Midnight Sun!"],
+   capital:'Oslo',animal:'🦁 Lion',bird:'🐦 White-throated Dipper',
+   sport:'⛷️ Cross-Country Skiing',knownFor:'Fjords, Northern Lights, Vikings, Salmon & Midnight Sun'},
+
+  {id:208,name:'Denmark',flag:'🇩🇰',cont:'Europe',
+   hints:["I'm a Scandinavian country made of a large peninsula and hundreds of islands",
+          "LEGO bricks — the world's favourite building toy — were invented in my country"],
+   capital:'Copenhagen',animal:'🦢 Mute Swan',bird:'🦢 Mute Swan',
+   sport:'⚽ Football & 🤾 Handball',knownFor:'LEGO, Hans Christian Andersen Fairy Tales, Vikings & Hygge Lifestyle'},
+
+  {id:246,name:'Finland',flag:'🇫🇮',cont:'Europe',
+   hints:["I'm a Nordic country covered in forests and over 180,000 lakes",
+          "Santa Claus's official hometown is in my northern region called Lapland"],
+   capital:'Helsinki',animal:'🐻 Brown Bear',bird:'🦢 Whooper Swan',
+   sport:'🏒 Ice Hockey',knownFor:'Santa Claus in Lapland, Northern Lights, Saunas & Reindeer'},
+
+  {id:372,name:'Ireland',flag:'🇮🇪',cont:'Europe',
+   hints:["I'm an island in the North Atlantic west of Great Britain, nicknamed the Emerald Isle",
+          "Shamrocks, leprechauns and the harp are all famous symbols of my culture"],
+   capital:'Dublin',animal:'🐇 Irish Hare',bird:'🐦 Northern Lapwing',
+   sport:'🏑 Hurling & Gaelic Football',knownFor:'Rolling Green Hills, Ancient Castles, Celtic Music & Saint Patrick\'s Day'},
+
+  {id:528,name:'Netherlands',flag:'🇳🇱',cont:'Europe',
+   hints:["Much of my land sits BELOW sea level — I use windmills and dykes to hold back the sea!",
+          "I'm famous for colourful tulip fields that turn the countryside into a giant rainbow"],
+   capital:'Amsterdam',animal:'🦁 Lion',bird:'🐦 Black-tailed Godwit',
+   sport:'⚽ Football & 🚴 Cycling',knownFor:'Tulips, Windmills, Gouda Cheese, Van Gogh & Canal Cities'},
+
+  {id:756,name:'Switzerland',flag:'🇨🇭',cont:'Europe',
+   hints:["I'm a landlocked Alpine country with four official languages",
+          "I'm famous for chocolate and precision watches, and I haven't been in a war for over 500 years"],
+   capital:'Bern',animal:'🐄 Cow',bird:'🐦 Common Raven',
+   sport:'⛷️ Alpine Skiing',knownFor:'Swiss Chocolate, Luxury Watches, Alps, Roger Federer & Neutrality'},
+
+  {id:40,name:'Austria',flag:'🇦🇹',cont:'Europe',
+   hints:["I'm a landlocked Alpine country in the heart of Europe surrounded by eight neighbours",
+          "The famous composer Wolfgang Amadeus Mozart was born in my city of Salzburg"],
+   capital:'Vienna',animal:'🦅 Black Eagle',bird:'🐦 Barn Swallow',
+   sport:'⛷️ Alpine Skiing',knownFor:'Mozart, Classical Music, Alpine Skiing, Schnitzel & Sachertorte Cake'},
+
+  {id:804,name:'Ukraine',flag:'🇺🇦',cont:'Europe',
+   hints:["I'm the largest country located entirely within Europe",
+          "I'm called the breadbasket of Europe because I grow vast fields of wheat and sunflowers"],
+   capital:'Kyiv',animal:'🐦 Common Nightingale',bird:'🦅 White-tailed Eagle',
+   sport:'⚽ Football',knownFor:'Vast Sunflower Fields, Borscht Soup, Vyshyvanka Embroidery & Wheat'},
+
+  {id:642,name:'Romania',flag:'🇷🇴',cont:'Europe',
+   hints:["Transylvania — the legendary home of Count Dracula's castle — is deep inside my borders",
+          "Gymnast Nadia Comaneci earned the first ever perfect 10 in Olympic history — she's from my country"],
+   capital:'Bucharest',animal:'🐻 Brown Bear',bird:'🐦 White Stork',
+   sport:'⚽ Football & 🤸 Gymnastics',knownFor:'Dracula\'s Transylvania, Nadia Comaneci, Painted Monasteries & Danube Delta'},
+
+  {id:100,name:'Bulgaria',flag:'🇧🇬',cont:'Europe',
+   hints:["I'm in southeast Europe with a sunny coast on the Black Sea",
+          "I produce most of the world's rose oil — the precious ingredient used in fine perfumes!"],
+   capital:'Sofia',animal:'🦁 Lion',bird:'🐦 White Stork',
+   sport:'⚽ Football & 🏋️ Weightlifting',knownFor:'Rose Oil Perfume, Black Sea Beaches, Yoghurt & Ancient Thracian History'},
+
+  {id:191,name:'Croatia',flag:'🇭🇷',cont:'Europe',
+   hints:["My Adriatic coastline is dotted with over a thousand beautiful islands",
+          "The medieval walled city of Dubrovnik on my coast starred in Game of Thrones"],
+   capital:'Zagreb',animal:'🐻 Brown Bear',bird:'🐦 Common Nightingale',
+   sport:'⚽ Football',knownFor:'Dubrovnik (Game of Thrones City), Adriatic Islands, Plitvice Lakes & Neckties'},
+
+  {id:688,name:'Serbia',flag:'🇷🇸',cont:'Europe',
+   hints:["I'm a landlocked country in the heart of the Balkans",
+          "Novak Djokovic — one of the greatest tennis players ever — was born in my capital"],
+   capital:'Belgrade',animal:'🦅 White Double-headed Eagle',bird:'🐦 Griffon Vulture',
+   sport:'🎾 Tennis & ⚽ Football',knownFor:'Novak Djokovic, Exit Music Festival, Nikola Tesla\'s Homeland & Rakija'},
+
+  {id:348,name:'Hungary',flag:'🇭🇺',cont:'Europe',
+   hints:["I'm a landlocked country with the Danube River flowing through my beautiful capital",
+          "The Rubik's Cube — the world's most popular puzzle toy — was invented by my professor Ernő Rubik"],
+   capital:'Budapest',animal:'🐎 Mangalica Pig',bird:'🦅 Great Bustard',
+   sport:'⚽ Football & 🏊 Water Polo',knownFor:'Rubik\'s Cube, Thermal Baths, Goulash Stew & Budapest Bridges'},
+
+  {id:203,name:'Czechia',flag:'🇨🇿',cont:'Europe',
+   hints:["I'm a landlocked country in Central Europe, also called Czech Republic",
+          "My capital Prague has one of the world's oldest working astronomical clocks, built way back in 1410"],
+   capital:'Prague',animal:'🦁 Lion',bird:'🦅 White-tailed Eagle',
+   sport:'🏒 Ice Hockey & ⚽ Football',knownFor:'Prague Castle, Medieval Astronomical Clock, Beer Culture & Bohemian Crystal'},
+
+  {id:703,name:'Slovakia',flag:'🇸🇰',cont:'Europe',
+   hints:["I'm a small landlocked country in Central Europe with the Tatra Mountains to my north",
+          "I have more castles and castle ruins per square kilometre than almost anywhere in the world"],
+   capital:'Bratislava',animal:'🐺 Gray Wolf',bird:'🐦 White Stork',
+   sport:'🏒 Ice Hockey',knownFor:'Mountain Castles, Tatra Mountain Peaks, Ice Hockey & Folk Costumes'},
+
+  {id:705,name:'Slovenia',flag:'🇸🇮',cont:'Europe',
+   hints:["I'm a tiny Alpine country where mountain peaks meet the Adriatic Sea",
+          "Lake Bled — a lake with a tiny island and church in the middle — is one of Europe's most magical spots"],
+   capital:'Ljubljana',animal:'🐻 Brown Bear',bird:'🐦 Barn Swallow',
+   sport:'⛷️ Skiing',knownFor:'Lake Bled, Julian Alps, Postojna Cave System & Green Tourism'},
+
+  {id:352,name:'Iceland',flag:'🇮🇸',cont:'Europe',
+   hints:["I'm an island nation in the North Atlantic — and despite my name I'm actually quite green!",
+          "I have geysers, volcanoes and hot springs — the earth is still actively bubbling up inside me"],
+   capital:'Reykjavik',animal:'🦊 Arctic Fox',bird:'🐦 Gyrfalcon',
+   sport:'🤾 Handball',knownFor:'Geysers, Volcanoes, Northern Lights, Puffins & Midnight Sun'},
+
+  {id:56,name:'Belgium',flag:'🇧🇪',cont:'Europe',
+   hints:["I'm a small country at the crossroads of Western Europe, speaking three languages",
+          "Brussels, my capital, is the headquarters of the European Union and NATO"],
+   capital:'Brussels',animal:'🦁 Black Lion',bird:'🐦 Common Kestrel',
+   sport:'⚽ Football & 🚴 Cycling',knownFor:'Belgian Chocolate, Waffles, Tintin Comics, EU Headquarters & French Fries'},
+
+  {id:112,name:'Belarus',flag:'🇧🇾',cont:'Europe',
+   hints:["I'm a large landlocked country in Eastern Europe between Russia and Poland",
+          "I have one of Europe's last primeval forests — Belovezhskaya Pushcha — full of European bison"],
+   capital:'Minsk',animal:'🦬 European Bison',bird:'🐦 White Stork',
+   sport:'🏒 Ice Hockey',knownFor:'Primeval Bison Forests, Potato Dishes & European Bison'},
+
+  {id:8,name:'Albania',flag:'🇦🇱',cont:'Europe',
+   hints:["I'm a small country on the western coast of the Balkan Peninsula facing Italy across the sea",
+          "There are over 170,000 concrete bunkers scattered across my countryside from the Cold War era"],
+   capital:'Tirana',animal:'🦅 Eagle',bird:'🦅 Eagle',
+   sport:'⚽ Football',knownFor:'Albanian Alps, Bunker History, Riviera Beaches & Eagle Symbol'},
+
+  {id:70,name:'Bosnia & Herzegovina',flag:'🇧🇦',cont:'Europe',
+   hints:["I'm a Balkan country whose very name is made of two regions joined by 'and'",
+          "The famous Old Bridge (Stari Most) in my city of Mostar arches beautifully over a turquoise river"],
+   capital:'Sarajevo',animal:'🐻 Brown Bear',bird:'🐦 House Sparrow',
+   sport:'⚽ Football',knownFor:'Stari Most Bridge, Sarajevo History, Ćevapi Food & Bosnian Coffee'},
+
+  {id:233,name:'Estonia',flag:'🇪🇪',cont:'Europe',
+   hints:["I'm a small Baltic country in northern Europe famous for being the most digitally advanced nation",
+          "You can vote, pay taxes and even get married online in my country — I lead the world in e-governance"],
+   capital:'Tallinn',animal:'🐺 Wolf',bird:'🐦 Barn Swallow',
+   sport:'🏀 Basketball',knownFor:'Digital E-Governance, Medieval Tallinn Old Town, Song Festivals & Peat Bogs'},
+
+  {id:428,name:'Latvia',flag:'🇱🇻',cont:'Europe',
+   hints:["I'm a small Baltic country whose capital Riga has more Art Nouveau buildings than any other city",
+          "The Baltic Sea coast in my country is famous for its beautiful amber washed up on the beaches"],
+   capital:'Riga',animal:'🐺 Gray Wolf',bird:'🐦 White Wagtail',
+   sport:'🏒 Ice Hockey & 🏀 Basketball',knownFor:'Art Nouveau Riga, Baltic Amber Jewellery, Song & Dance Festivals'},
+
+  {id:440,name:'Lithuania',flag:'🇱🇹',cont:'Europe',
+   hints:["I'm a Baltic country with an amber-rich coastline known as the Baltic Gold Coast",
+          "Basketball is almost a religion here — my national team is consistently one of the world's best"],
+   capital:'Vilnius',animal:'🐦 White Stork',bird:'🐦 White Stork',
+   sport:'🏀 Basketball',knownFor:'Basketball Passion, Hill of Crosses, Vilnius Old Town & Baltic Amber'},
+
+  {id:498,name:'Moldova',flag:'🇲🇩',cont:'Europe',
+   hints:["I'm a tiny landlocked country in Eastern Europe between Romania and Ukraine",
+          "I'm one of the world's biggest wine producers — I have enormous underground wine cellars"],
+   capital:'Chișinău',animal:'🦬 European Bison',bird:'🐦 White Stork',
+   sport:'⚽ Football',knownFor:'Underground Wine Cellars, Orchards, Folk Music & Embroidered Blouses'},
+
+  {id:499,name:'Montenegro',flag:'🇲🇪',cont:'Europe',
+   hints:["My name literally means 'Black Mountain' in the local language",
+          "I'm a tiny country with dramatic mountains AND a stunning Adriatic coastline"],
+   capital:'Podgorica',animal:'🐺 Gray Wolf',bird:'🐦 Common Raven',
+   sport:'🏀 Basketball & 🤽 Water Polo',knownFor:'Bay of Kotor, Adriatic Riviera, Mountain Peaks & Black Mountain'},
+
+  {id:807,name:'North Macedonia',flag:'🇲🇰',cont:'Europe',
+   hints:["I'm a small landlocked country in the southern Balkans near Greece",
+          "Mother Teresa — one of the world's most beloved helpers of the poor — was born in my capital Skopje"],
+   capital:'Skopje',animal:'🐺 Lynx',bird:'🐦 Yellow-throated Sparrow',
+   sport:'⚽ Football',knownFor:'Mother Teresa\'s Birthplace, Lake Ohrid, Alexander the Great Heritage & Lynx'},
+
+  // ── Africa ────────────────────────────────────────────────────────
+  {id:818,name:'Egypt',flag:'🇪🇬',cont:'Africa',
+   hints:["The Nile River — one of the longest rivers in the world — flows right through me",
+          "The Great Pyramids and the Sphinx have stood in my desert for 4,500 years"],
+   capital:'Cairo',animal:'🐺 Honey Badger',bird:'🦅 Steppe Eagle',
+   sport:'⚽ Football',knownFor:'Pyramids, Pharaohs, Mummies & the Nile River'},
+
+  {id:710,name:'South Africa',flag:'🇿🇦',cont:'Africa',
+   hints:["I'm right at the southern tip of the African continent",
+          "I actually have three capital cities — one for each branch of government!"],
+   capital:'Pretoria',animal:'🦌 Springbok',bird:'🐦 Blue Crane',
+   sport:'🏉 Rugby',knownFor:'Safaris, Diamonds, Nelson Mandela & Cape Town'},
+
+  {id:566,name:'Nigeria',flag:'🇳🇬',cont:'Africa',
+   hints:["I have more people living inside me than any other country in Africa",
+          "My film industry, Nollywood, produces more movies per year than Hollywood!"],
+   capital:'Abuja',animal:'🦅 Eagle',bird:'🐦 Black Crowned Crane',
+   sport:'⚽ Football',knownFor:'Nollywood Movies, Jollof Rice & Afrobeats Music'},
+
+  {id:231,name:'Ethiopia',flag:'🇪🇹',cont:'Africa',
+   hints:["Coffee was first discovered in my forests — I gave the whole world coffee!",
+          "My long-distance runners have won more Olympic gold medals than almost any country"],
+   capital:'Addis Ababa',animal:'🦁 Ethiopian Lion',bird:'🐦 Wattled Ibis',
+   sport:'🏃 Long-Distance Running',knownFor:'The Birthplace of Coffee, Marathon Champions & Rock Churches'},
+
+  {id:404,name:'Kenya',flag:'🇰🇪',cont:'Africa',
+   hints:["The Masai Mara — one of Earth's greatest wildlife parks — is inside me",
+          "My athletes are among the fastest long-distance runners in the world"],
+   capital:'Nairobi',animal:'🦁 Lion',bird:'🐦 Lilac-breasted Roller',
+   sport:'🏃 Athletics',knownFor:'Masai Mara Safari, World-Class Runners & Flamingo Lakes'},
+
+  {id:504,name:'Morocco',flag:'🇲🇦',cont:'Africa',
+   hints:["I'm the African country closest to Europe — only 14 km across the sea from Spain",
+          "Part of the vast Sahara Desert stretches across my south"],
+   capital:'Rabat',animal:'🐒 Barbary Macaque',bird:'🐦 Bald Ibis',
+   sport:'⚽ Football',knownFor:'Sahara Desert, Tagine Stew, Colourful Souks & Argan Oil'},
+
+  // ── Americas ──────────────────────────────────────────────────────
+  {id:840,name:'United States',flag:'🇺🇸',cont:'N. America',
+   hints:["I have 50 states and my flag has 50 stars — one for each state",
+          "The Statue of Liberty, Hollywood studios and NASA are all inside my borders"],
+   capital:'Washington D.C.',animal:'🦅 Bald Eagle',bird:'🦅 Bald Eagle',
+   sport:'🏈 American Football',knownFor:'Hollywood, NASA, Burgers, Jazz & the Statue of Liberty'},
+
+  {id:124,name:'Canada',flag:'🇨🇦',cont:'N. America',
+   hints:["I'm the second-largest country in the world by total area",
+          "My flag has a red maple leaf and I produce most of the world's maple syrup"],
+   capital:'Ottawa',animal:'🦫 Beaver',bird:'🐦 Gray Jay',
+   sport:'🏒 Ice Hockey',knownFor:'Maple Syrup, Ice Hockey, Niagara Falls & Polar Bears'},
+
+
+  {id:76,name:'Brazil',flag:'🇧🇷',cont:'S. America',
+   hints:["I'm the largest country in South America — I take up nearly half the continent!",
+          "The Amazon Rainforest, home to more species than anywhere else, covers much of me"],
+   capital:'Brasília',animal:'🐆 Jaguar',bird:'🐦 Rufous-bellied Thrush',
+   sport:'⚽ Football',knownFor:'Amazon Rainforest, Carnival, Samba Dancing & Football'},
+
+  {id:32,name:'Argentina',flag:'🇦🇷',cont:'S. America',
+   hints:["I'm the second-largest country in South America",
+          "Lionel Messi — the famous footballer — was born in my city of Rosario"],
+   capital:'Buenos Aires',animal:'🐆 Puma',bird:'🐦 Rufous Hornero',
+   sport:'⚽ Football',knownFor:'Tango Dancing, Lionel Messi, Steak & Patagonia'},
+
+  {id:152,name:'Chile',flag:'🇨🇱',cont:'S. America',
+   hints:["My shape is incredibly long and thin — I stretch for over 4,300 km north to south!",
+          "The Atacama Desert in my north is the driest place on Earth"],
+   capital:'Santiago',animal:'🦌 Huemul Deer',bird:'🐦 Andean Condor',
+   sport:'⚽ Football & 🎾 Tennis',knownFor:'Atacama Desert, Andes Mountains, Wine & the Longest Country'},
+
+  {id:170,name:'Colombia',flag:'🇨🇴',cont:'S. America',
+   hints:["I'm the only country in South America with coasts on BOTH the Pacific and the Caribbean",
+          "The pop star Shakira was born in my city of Barranquilla"],
+   capital:'Bogotá',animal:'🐻 Spectacled Bear',bird:'🐦 Andean Condor',
+   sport:'⚽ Football & 🚴 Cycling',knownFor:'World-Famous Coffee, Emeralds, Shakira & Cycling Champions'},
+
+  {id:604,name:'Peru',flag:'🇵🇪',cont:'S. America',
+   hints:["The ancient Inca civilisation built their magnificent city of Machu Picchu in my Andes mountains",
+          "The humble potato was first farmed in my country thousands of years ago — I gave the world chips!"],
+   capital:'Lima',animal:'🦙 Vicuña',bird:'🐦 Andean Cock-of-the-rock',
+   sport:'⚽ Football',knownFor:'Machu Picchu, Inca Empire, Birthplace of the Potato, Llamas & Amazon'},
+
+  {id:68,name:'Bolivia',flag:'🇧🇴',cont:'S. America',
+   hints:["I'm a landlocked country in the heart of South America with the world's highest capital city",
+          "The Uyuni Salt Flat — the world's largest mirror after rain — shimmers across my highlands"],
+   capital:'Sucre',animal:'🦙 Llama',bird:'🐦 Andean Condor',
+   sport:'⚽ Football',knownFor:'Uyuni Salt Flat, Llamas, Cholita Women, Amazon Jungle & High Altitude'},
+
+  {id:218,name:'Ecuador',flag:'🇪🇨',cont:'S. America',
+   hints:["My name means Equator in Spanish — the Equator line runs right through my middle",
+          "The Galápagos Islands, where Darwin discovered evolution, belong to me"],
+   capital:'Quito',animal:'🐢 Galápagos Giant Tortoise',bird:'🐦 Andean Condor',
+   sport:'⚽ Football',knownFor:'Galápagos Islands, Darwin\'s Evolution, Amazon Jungle & World\'s Best Roses'},
+
+  {id:600,name:'Paraguay',flag:'🇵🇾',cont:'S. America',
+   hints:["I'm a landlocked country in central South America surrounded by Brazil, Argentina and Bolivia",
+          "I'm one of few countries where two languages — Spanish AND Guaraní — are both equally official"],
+   capital:'Asunción',animal:'🦊 Pampas Fox',bird:'🐦 Bare-throated Bellbird',
+   sport:'⚽ Football',knownFor:'Guaraní Language Heritage, Yerba Mate Tea, Itaipu Dam & Tereré Drink'},
+
+  {id:858,name:'Uruguay',flag:'🇺🇾',cont:'S. America',
+   hints:["I'm a small country tucked between Brazil and Argentina",
+          "The very first FIFA World Cup was hosted AND won by my country in 1930!"],
+   capital:'Montevideo',animal:'🐦 Southern Lapwing',bird:'🐦 Southern Lapwing',
+   sport:'⚽ Football',knownFor:'First FIFA World Cup Winners, Mate Tea, Gauchos & Beautiful Beaches'},
+
+  {id:862,name:'Venezuela',flag:'🇻🇪',cont:'S. America',
+   hints:["Angel Falls — the world's highest uninterrupted waterfall at 979 metres — is inside my borders",
+          "My ancient flat-topped mountains called tepuis inspired the movie Up and The Lost World"],
+   capital:'Caracas',animal:'🐦 Venezuelan Troupial',bird:'🐦 Venezuelan Troupial',
+   sport:'⚽ Football & ⚾ Baseball',knownFor:'Angel Falls, Tepui Table Mountains, Arepas & Beautiful Beaches'},
+
+  {id:328,name:'Guyana',flag:'🇬🇾',cont:'S. America',
+   hints:["I'm the only South American country where English is the official language",
+          "Kaieteur Falls in my country drops 226 metres — making it one of the most powerful waterfalls on Earth"],
+   capital:'Georgetown',animal:'🐆 Jaguar',bird:'🐦 Canje Pheasant',
+   sport:'🏏 Cricket & ⚽ Football',knownFor:'Kaieteur Falls, Amazon Rainforest, English-speaking South America & Jaguars'},
+
+  {id:740,name:'Suriname',flag:'🇸🇷',cont:'S. America',
+   hints:["I'm the smallest country in South America",
+          "I was once a Dutch colony — I'm the only South American country where Dutch is the official language"],
+   capital:'Paramaribo',animal:'🐆 Jaguar',bird:'🦜 Scarlet Macaw',
+   sport:'⚽ Football',knownFor:'Dutch Colonial Heritage, Amazon Rainforest, Tropical Birds & Cultural Diversity'},
+
+  // ── C. America ────────────────────────────────────────────────────
+  {id:484,name:'Mexico',flag:'🇲🇽',cont:'C. America',
+   hints:["I'm south of the USA and have long coastlines on both the Pacific Ocean and the Gulf of Mexico",
+          "Ancient pyramids built by the Aztec and Maya civilisations tower inside my borders"],
+   capital:'Mexico City',animal:'🦅 Golden Eagle',bird:'🦅 Golden Eagle',
+   sport:'⚽ Football',knownFor:'Tacos, Aztec Pyramids, Mariachi Music & Día de Muertos Festival'},
+
+  {id:320,name:'Guatemala',flag:'🇬🇹',cont:'C. America',
+   hints:["The ancient Maya built their greatest pyramid city — Tikal — deep in my jungle",
+          "My national bird, the Quetzal, was so sacred to the Maya that harming one was punishable by death"],
+   capital:'Guatemala City',animal:'🦌 White-tailed Deer',bird:'🐦 Resplendent Quetzal',
+   sport:'⚽ Football',knownFor:'Maya Ruins of Tikal, Quetzal Bird, Colourful Textiles & Coffee'},
+
+  {id:340,name:'Honduras',flag:'🇭🇳',cont:'C. America',
+   hints:["I'm a Central American country with ancient Maya ruins called Copán inside my borders",
+          "The Copán ruins are famous for their beautifully carved stone sculptures and hieroglyphs"],
+   capital:'Tegucigalpa',animal:'🦌 White-tailed Deer',bird:'🦜 Scarlet Macaw',
+   sport:'⚽ Football',knownFor:'Maya Copán Ruins, Caribbean Coastline, Tropical Rainforests & Scarlet Macaws'},
+
+  {id:222,name:'El Salvador',flag:'🇸🇻',cont:'C. America',
+   hints:["I'm the smallest country in Central America",
+          "I'm known as the Land of Volcanoes — I have more than 20 volcanoes packed into my tiny territory!"],
+   capital:'San Salvador',animal:'🦌 White-tailed Deer',bird:'🐦 Torogoz Motmot',
+   sport:'⚽ Football',knownFor:'Land of Volcanoes, Pupusa Stuffed Corn Cakes, Pacific Surf Beaches & El Imposible Forest'},
+
+  {id:558,name:'Nicaragua',flag:'🇳🇮',cont:'C. America',
+   hints:["I'm the largest country in Central America",
+          "Lake Nicaragua inside my borders is so big it has freshwater sharks — the only lake sharks in the world!"],
+   capital:'Managua',animal:'🦅 Guardabarranco Bird',bird:'🐦 Turquoise-browed Motmot',
+   sport:'⚾ Baseball & ⚽ Football',knownFor:'Largest Central American Country, Freshwater Sharks, Volcanoes & Coffee'},
+
+  {id:188,name:'Costa Rica',flag:'🇨🇷',cont:'C. America',
+   hints:["I have NO army — I abolished my military in 1948 and spent the money on schools and hospitals instead",
+          "Despite my tiny size I'm home to 5% of all plant and animal species on the entire planet"],
+   capital:'San José',animal:'🦌 White-tailed Deer',bird:'🐦 Clay-colored Thrush',
+   sport:'⚽ Football',knownFor:'No Army, Incredible Biodiversity, Cloud Forests, Sloths & Pura Vida Lifestyle'},
+
+  {id:591,name:'Panama',flag:'🇵🇦',cont:'C. America',
+   hints:["I'm the narrow strip of land connecting North and South America",
+          "The Panama Canal running through me connects the Atlantic and Pacific Oceans — one of the greatest engineering feats ever"],
+   capital:'Panama City',animal:'🦅 Harpy Eagle',bird:'🦅 Harpy Eagle',
+   sport:'⚾ Baseball & ⚽ Football',knownFor:'Panama Canal, Harpy Eagles, Biodiverse Rainforests & Gateway Between Oceans'},
+
+  {id:84,name:'Belize',flag:'🇧🇿',cont:'C. America',
+   hints:["I'm the only Central American country where English is the official language — I was once British",
+          "My coast has the world's second-largest barrier reef, including a mysterious circular hole called the Great Blue Hole"],
+   capital:'Belmopan',animal:'🐾 Baird\'s Tapir',bird:'🐦 Keel-billed Toucan',
+   sport:'⚽ Football',knownFor:'Great Blue Hole, Belize Barrier Reef, Maya Ruins, Jungles & English-Speaking C. America'},
+
+  // ── Caribbean ─────────────────────────────────────────────────────
+  {id:192,name:'Cuba',flag:'🇨🇺',cont:'Caribbean',
+   hints:["I'm the largest island in the Caribbean Sea",
+          "My streets are still filled with colourful classic American cars from the 1950s that have been lovingly maintained"],
+   capital:'Havana',animal:'🐊 Cuban Crocodile',bird:'🐦 Cuban Trogon',
+   sport:'⚾ Baseball & 🥊 Boxing',knownFor:'Classic 1950s Cars, Salsa Music, Cigars, Revolution History & Mojito Cocktails'},
+
+  // ── Oceania ───────────────────────────────────────────────────────
+  {id:36,name:'Australia',flag:'🇦🇺',cont:'Oceania',
+   hints:["I'm both a continent AND a country — the only one in the entire world!",
+          "Kangaroos, koalas and the platypus all live naturally only inside my borders"],
+   capital:'Canberra',animal:'🦘 Red Kangaroo',bird:'🐦 Emu',
+   sport:'🏏 Cricket & 🏉 Rugby',knownFor:'Kangaroos, Great Barrier Reef, Sydney Opera House & Surfing'},
+
+  {id:554,name:'New Zealand',flag:'🇳🇿',cont:'Oceania',
+   hints:["I'm made up of two main islands far out in the South Pacific Ocean",
+          "The entire Lord of the Rings film trilogy was shot inside my borders"],
+   capital:'Wellington',animal:'🐦 Kiwi Bird',bird:'🐦 Kiwi Bird',
+   sport:'🏉 Rugby',knownFor:'Lord of the Rings, All Blacks Rugby, Kiwi Birds & Bungee Jumping'},
+];
+
+const GLOB_EMOJI={
+  'Asia':'🌏','Europe':'🌍','Africa':'🌍',
+  'N. America':'🌎','C. America':'🌎','Caribbean':'🌎',
+  'S. America':'🌎','Oceania':'🌏',
+};
+const PRAISE=['Brilliant! 🎉','Amazing! 🌟','Superstar! ⭐','Wow! 🔥','Fantastic! 🎊','Nailed it! ✅'];
+
+/* difficulty tiers
+   1 = Easy   — very large or instantly recognisable shapes
+   2 = Medium — distinctive but require some geography knowledge
+   3 = Hard   — small, thin, or easy to confuse with neighbours   */
+const DIFF={
+  643:1, 36:1, 840:1, 124:1, 76:1, 156:1, 356:1, 32:1,          // tier 1 (8)
+  152:2, 380:2, 392:2, 826:2, 250:2, 276:2, 724:2, 578:2, 752:2, // tier 2
+  484:2, 170:2, 604:2, 792:2, 704:2, 818:2, 710:2, 504:2, 404:2,
+  566:2, 231:2, 682:2, 616:2, 804:2,  68:2, 218:2, 862:2, 524:2,
+  764:2, 554:2, 352:2, 642:2, 300:2, 246:2, 372:2,               // (34)
+};
+function getDiff(c){ return DIFF[c.id]||3; }
+
+/* reorder array so no two adjacent entries share the same continent */
+function spread(arr){
+  const src=[...arr], out=[];
+  let last=null;
+  while(src.length){
+    const idx=src.findIndex(c=>c.cont!==last);
+    const pick=idx===-1?src.splice(0,1)[0]:src.splice(idx,1)[0];
+    out.push(pick);
+    last=pick.cont;
+  }
+  return out;
+}
+
+function buildDeck(){
+  const t1=shuffle(validDeck.filter(c=>getDiff(c)===1));
+  const t2=shuffle(validDeck.filter(c=>getDiff(c)===2));
+  const t3=shuffle(validDeck.filter(c=>getDiff(c)===3));
+  return [...spread(t1),...spread(t2),...spread(t3)];
+}
+
+let featById={}, validDeck=[], deck=[], qIdx=0, score=0, busy=false;
+let currentQ=null, hintIdx=0;
+
+function shuffle(a){
+  a=[...a];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+/* ── load map data ── */
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+  const fc=topojson.feature(world,world.objects.countries);
+  fc.features.forEach(f=>{ featById[f.id]=f; });
+  validDeck=COUNTRIES.filter(c=>featById[c.id]);
+  const msg=document.getElementById('loadMsg');
+  msg.textContent='Map ready! ✅';
+  setTimeout(()=>{ msg.style.opacity='0'; },900);
+  document.getElementById('playBtn').disabled=false;
+}).catch(()=>{
+  document.getElementById('loadMsg').textContent='No internet? Maps need a connection.';
+});
+
+/* ── game flow ── */
+function startGame(){
+  deck=buildDeck();
+  qIdx=0; score=0; busy=false;
+  document.getElementById('scoreEl').textContent='0';
+  showScreen('quizScreen');
+  nextQ();
+}
+
+function nextQ(){
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  if(qIdx>=deck.length){ deck=buildDeck(); qIdx=0; }
+  currentQ=deck[qIdx++];
+  hintIdx=0; busy=false;
+
+  const hintBubble=document.getElementById('hintBubble');
+  const hintBtn=document.getElementById('hintBtn');
+  hintBubble.style.display='none';
+  hintBtn.textContent='💡 Hint?';
+  hintBtn.disabled=false;
+
+  document.getElementById('contHint').textContent=
+    `${GLOB_EMOJI[currentQ.cont]} ${currentQ.cont}`;
+  drawCountry(currentQ);
+  buildOptions(currentQ);
+}
+
+/* ── speech ── */
+function speak(text){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.rate=0.88;
+  utt.pitch=1.1;
+  speechSynthesis.speak(utt);
+}
+
+/* ── hint ── */
+function showHint(){
+  if(!currentQ||hintIdx>=currentQ.hints.length) return;
+  const text=currentQ.hints[hintIdx];
+  const bubble=document.getElementById('hintBubble');
+  bubble.textContent=text;
+  bubble.style.display='block';
+  speak(text);
+  hintIdx++;
+  const btn=document.getElementById('hintBtn');
+  if(hintIdx>=currentQ.hints.length){
+    btn.textContent='💡 No more hints';
+    btn.disabled=true;
+  } else {
+    btn.textContent='💡 One more?';
+  }
+}
+
+/* ── draw country ── */
+function drawCountry(q){
+  const feature=featById[q.id];
+  const W=280, H=280;
+  const proj=d3.geoMercator().fitSize([W-20, H-20], feature);
+  const path=d3.geoPath().projection(proj);
+  const svg=d3.select('#mapSvg');
+  svg.attr('viewBox',`0 0 ${W} ${H}`).selectAll('*').remove();
+  svg.append('g').attr('transform','translate(10,10)')
+    .append('path')
+    .datum(feature)
+    .attr('d', path)
+    .attr('fill','#FF6B9D')
+    .attr('stroke','#2B2A4C')
+    .attr('stroke-width', 2)
+    .attr('stroke-linejoin','round');
+}
+
+/* ── options ── */
+function buildOptions(q){
+  const grid=document.getElementById('optsGrid');
+  grid.innerHTML='';
+  const sameCont=shuffle(validDeck.filter(c=>c.id!==q.id && c.cont===q.cont));
+  const other   =shuffle(validDeck.filter(c=>c.id!==q.id && c.cont!==q.cont));
+  const distract=[...sameCont,...other].slice(0,3);
+  shuffle([q,...distract]).forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    btn.dataset.cid=c.id;
+    btn.innerHTML=`<div class="opt-flag">${c.flag}</div><div class="opt-name">${c.name}</div>`;
+    btn.onclick=()=>onAnswer(btn, c.id, q.id);
+    grid.appendChild(btn);
+  });
+}
+
+/* ── answer ── */
+function onAnswer(btn, chosen, correct){
+  if(busy) return;
+  busy=true;
+  document.getElementById('hintBtn').disabled=true;
+  const grid=document.getElementById('optsGrid');
+  Array.from(grid.children).forEach(b=>{ b.disabled=true; b.onclick=null; });
+
+  const isCorrect=chosen===correct;
+  btn.classList.add(isCorrect?'correct':'wrong');
+  if(!isCorrect){
+    Array.from(grid.children).forEach(b=>{
+      if(+b.dataset.cid===correct) b.classList.add('correct');
+    });
+  } else {
+    score++;
+    document.getElementById('scoreEl').textContent=score;
+    sprayConfetti();
+    showCeleb(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+  }
+
+  const delay=isCorrect?1400:900;
+  setTimeout(()=>{
+    hideCeleb();
+    showInfoPanel(currentQ, isCorrect);
+  }, delay);
+}
+
+/* ── info panel ── */
+function showInfoPanel(q, wasCorrect){
+  document.getElementById('panelFlag').textContent=q.flag;
+  document.getElementById('panelName').textContent=q.name;
+  const res=document.getElementById('panelResult');
+  res.textContent=wasCorrect?'✅ Correct!':'❌ Not quite — now you know!';
+  res.className='panel-result '+(wasCorrect?'ok':'bad');
+  document.getElementById('fCapital').textContent=q.capital;
+  document.getElementById('fAnimal').textContent=q.animal;
+  document.getElementById('fBird').textContent=q.bird;
+  document.getElementById('fSport').textContent=q.sport;
+  document.getElementById('panelKnown').textContent=`✨ Known for: ${q.knownFor}`;
+  document.getElementById('infoPanel').classList.add('show');
+  document.getElementById('panelOverlay').classList.add('show');
+}
+
+function nextRound(){
+  document.getElementById('infoPanel').classList.remove('show');
+  document.getElementById('panelOverlay').classList.remove('show');
+  setTimeout(nextQ, 460);
+}
+
+/* ── celebration ── */
+function showCeleb(txt){
+  document.getElementById('celebTx').textContent=txt;
+  document.getElementById('celebEl').classList.add('show');
+}
+function hideCeleb(){ document.getElementById('celebEl').classList.remove('show'); }
+
+function sprayConfetti(){
+  const colors=['#FF6B9D','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#B388EB'];
+  const shapes=['●','■','▲','★'];
+  for(let i=0;i<22;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.textContent=shapes[Math.floor(Math.random()*shapes.length)];
+    p.style.cssText=
+      `left:${Math.random()*100}%;`+
+      `font-size:${12+Math.random()*14}px;`+
+      `color:${colors[Math.floor(Math.random()*colors.length)]};`+
+      `animation-duration:${0.9+Math.random()*0.8}s;`+
+      `animation-delay:${Math.random()*0.25}s`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 2000);
+  }
+}
+
+/* ── navigation ── */
+function goHome(){
+  document.getElementById('infoPanel').classList.remove('show');
+  document.getElementById('panelOverlay').classList.remove('show');
+  showScreen('homeScreen');
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
