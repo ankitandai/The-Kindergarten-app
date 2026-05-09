@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson@3/dist/topojson.min.js"></script>
+<script src="avatar-chip.js"></script>
 <style>
 :root{--bg:#FFF4E0;--ink:#2B2A4C;--pink:#FF6B9D;--yellow:#FFD93D;--blue:#4ECDC4;--green:#95E06C;--orange:#FF9A3C;--purple:#B388EB;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -37,6 +38,10 @@ body{
 }
 .icon-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
 .topbar-title{font-family:'Bowlby One',sans-serif;font-size:20px;}
+.avatar-chip{flex-shrink:0;display:flex;align-items:center;gap:5px;background:white;border:2px solid var(--ink);border-radius:999px;padding:4px 10px 4px 4px;box-shadow:2px 2px 0 var(--ink);}
+.chip-head{width:30px;height:30px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#f5f5f5;}
+.chip-head svg,.chip-head img{display:block;width:100%;height:100%;object-fit:contain;}
+.chip-name{font-size:13px;font-weight:700;}
 .score-pill{
   background:var(--yellow);border:3px solid var(--ink);border-radius:999px;
   padding:3px 16px;font-family:'Bowlby One',sans-serif;font-size:20px;
@@ -171,9 +176,12 @@ body{
 <!-- ══ HOME ══ -->
 <div class="screen active" id="homeScreen">
   <div class="topbar">
-    <button class="icon-btn" onclick="window.location.href='index.html'">←</button>
+    <button class="icon-btn" onclick="history.back()">←</button>
     <div class="topbar-title">Maps Safari</div>
-    <div style="width:44px"></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <a class="icon-btn" href="index.html" style="text-decoration:none">🏠</a>
+      <div class="avatar-chip"><div class="chip-head" id="chipHead"></div><span class="chip-name" id="chipName"></span></div>
+    </div>
   </div>
   <div class="home-globe">🗺️</div>
   <div class="home-title">Maps Safari!</div>
@@ -942,6 +950,8 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+
+initAvatarChip(document.getElementById('chipHead'),document.getElementById('chipName'));
 </script>
 </body>
 </html>

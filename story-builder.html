@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Story Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFF4E0;--ink:#2B2A4C;--pink:#FF6B9D;--yellow:#FFD93D;--blue:#4ECDC4;--green:#95E06C;--orange:#FF9A3C;--purple:#B388EB;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Fredoka',sans-serif;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;touch-action:manipulation;min-height:100vh;background-image:radial-gradient(circle at 15% 20%,rgba(218,34,255,.12) 0%,transparent 40%),radial-gradient(circle at 85% 75%,rgba(151,51,238,.12) 0%,transparent 40%);}
+.screen{display:none;flex-direction:column;align-items:center;padding:18px 14px 36px;min-height:100vh;gap:14px;}
+.screen.active{display:flex;}
+.topbar{display:flex;align-items:center;gap:10px;width:100%;max-width:500px;}
+.back-btn{background:white;border:3px solid var(--ink);border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--ink);flex-shrink:0;transition:transform .1s,box-shadow .1s;font-family:inherit;}
+.back-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.home-btn{background:white;border:3px solid var(--ink);border-radius:50%;width:44px;height:44px;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--ink);flex-shrink:0;text-decoration:none;margin-left:auto;}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:22px;}
+.big-title{font-family:'Bowlby One',sans-serif;font-size:34px;text-align:center;color:var(--purple);text-shadow:3px 3px 0 var(--ink);}
+.sub{font-size:15px;font-weight:600;text-align:center;opacity:.7;}
+/* step indicator */
+.steps{display:flex;gap:8px;align-items:center;}
+.step-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);background:#e0d4c0;transition:background .2s;}
+.step-dot.done{background:var(--purple);}
+.step-dot.active{background:var(--yellow);transform:scale(1.3);}
+/* pick grid */
+.pick-prompt{font-family:'Bowlby One',sans-serif;font-size:20px;text-align:center;}
+.pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;max-width:440px;}
+.pick-btn{border:4px solid var(--ink);border-radius:22px;box-shadow:5px 5px 0 var(--ink);padding:20px 10px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .12s,box-shadow .12s;background:white;font-family:'Fredoka',sans-serif;}
+.pick-btn:hover{transform:translateY(-4px);box-shadow:5px 9px 0 var(--ink);}
+.pick-btn:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+.pick-btn.selected{outline:4px solid var(--purple);outline-offset:2px;background:#f5f0ff;}
+.pick-emoji{font-size:48px;line-height:1;}
+.pick-name{font-family:'Bowlby One',sans-serif;font-size:15px;}
+.pick-trait{font-size:12px;font-weight:600;opacity:.6;}
+.next-btn{width:100%;max-width:340px;padding:15px;font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;border:4px solid var(--ink);border-radius:16px;background:var(--purple);box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:white;transition:transform .1s,box-shadow .1s;}
+.next-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.next-btn:disabled{opacity:.5;cursor:default;}
+/* story screen */
+.story-book{background:white;border:5px solid var(--ink);border-radius:28px;box-shadow:8px 8px 0 var(--ink);padding:26px 22px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:12px;}
+.story-header{display:flex;gap:12px;align-items:center;border-bottom:3px dashed #e0d4c0;padding-bottom:12px;}
+.story-avatar{font-size:52px;line-height:1;}
+.story-title{font-family:'Bowlby One',sans-serif;font-size:20px;color:var(--purple);}
+.story-setting{font-size:14px;font-weight:600;color:#888;}
+.story-text{font-size:17px;font-weight:600;line-height:1.7;color:var(--ink);}
+.story-text .highlight{color:var(--purple);font-family:'Bowlby One',sans-serif;}
+.story-ending{font-family:'Bowlby One',sans-serif;font-size:18px;text-align:center;color:var(--pink);}
+.action-row{display:flex;gap:10px;width:100%;max-width:440px;}
+.story-btn{flex:1;padding:13px 10px;font-family:'Fredoka',sans-serif;font-size:17px;font-weight:700;border:4px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);cursor:pointer;transition:transform .1s,box-shadow .1s;text-align:center;}
+.story-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.story-btn.read{background:var(--yellow);color:var(--ink);}
+.story-btn.new{background:var(--green);color:var(--ink);}
+.story-btn.home{background:var(--purple);color:white;}
+.confetti-piece{position:fixed;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:999;}
+</style>
+</head>
+<body>
+
+<!-- STEP 1: CHARACTER -->
+<div class="screen active" id="step1">
+  <div class="topbar">
+    <button class="back-btn" onclick="if('speechSynthesis' in window)speechSynthesis.cancel();history.back()">←</button>
+    <div class="topbar-title">📖 Story Builder</div>
+    <a class="home-btn" href="index.html" onclick="if('speechSynthesis' in window)speechSynthesis.cancel()">🏠</a>
+  </div>
+  <div class="big-title">Story Builder! 📖</div>
+  <div class="steps">
+    <div class="step-dot active" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+  </div>
+  <div class="pick-prompt">👤 Pick your hero!</div>
+  <div class="pick-grid" id="charGrid"></div>
+  <button class="next-btn" id="nextChar" onclick="goStep2()" disabled>Next: Pick Setting →</button>
+</div>
+
+<!-- STEP 2: SETTING -->
+<div class="screen" id="step2">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('step1')">←</button>
+    <div class="topbar-title">📖 Story Builder</div>
+    <a class="home-btn" href="index.html" onclick="if('speechSynthesis' in window)speechSynthesis.cancel()">🏠</a>
+  </div>
+  <div class="steps">
+    <div class="step-dot done"></div>
+    <div class="step-dot active" id="dot2b"></div>
+    <div class="step-dot" id="dot3b"></div>
+  </div>
+  <div class="pick-prompt">🌍 Where does the story happen?</div>
+  <div class="pick-grid" id="settingGrid"></div>
+  <button class="next-btn" id="nextSetting" onclick="goStep3()" disabled>Next: Pick the Twist →</button>
+</div>
+
+<!-- STEP 3: TWIST -->
+<div class="screen" id="step3">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('step2')">←</button>
+    <div class="topbar-title">📖 Story Builder</div>
+    <a class="home-btn" href="index.html" onclick="if('speechSynthesis' in window)speechSynthesis.cancel()">🏠</a>
+  </div>
+  <div class="steps">
+    <div class="step-dot done"></div>
+    <div class="step-dot done"></div>
+    <div class="step-dot active"></div>
+  </div>
+  <div class="pick-prompt">⚡ What happens?</div>
+  <div class="pick-grid" id="twistGrid"></div>
+  <button class="next-btn" id="nextTwist" onclick="buildStory()" disabled>✨ Build My Story!</button>
+</div>
+
+<!-- STORY -->
+<div class="screen" id="storyScreen">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('step1')">←</button>
+    <div class="topbar-title">📖 My Story</div>
+  </div>
+  <div class="story-book">
+    <div class="story-header">
+      <div class="story-avatar" id="storyAvatar"></div>
+      <div>
+        <div class="story-title" id="storyTitle"></div>
+        <div class="story-setting" id="storySettingLabel"></div>
+      </div>
+    </div>
+    <div class="story-text" id="storyText"></div>
+    <div class="story-ending" id="storyEnding"></div>
+  </div>
+  <div class="action-row">
+    <button class="story-btn read" id="readBtn" onclick="readAloud()">🔊 Read!</button>
+    <button class="story-btn new"  onclick="showScreen('step1')">🔄 New</button>
+    <button class="story-btn home" onclick="location.href='index.html'">🏠 Home</button>
+  </div>
+</div>
+
+<script>
+if('speechSynthesis' in window) speechSynthesis.cancel();
+window.addEventListener('beforeunload',()=>{ if('speechSynthesis' in window) speechSynthesis.cancel(); });
+const CHARACTERS = [
+  {name:'Zara',  emoji:'👧',trait:'brave',    pronoun:'she'},
+  {name:'Max',   emoji:'👦',trait:'curious',  pronoun:'he'},
+  {name:'Robo',  emoji:'🤖',trait:'clever',   pronoun:'it'},
+  {name:'Ember', emoji:'🐉',trait:'magical',  pronoun:'she'},
+  {name:'Pip',   emoji:'🐱',trait:'sneaky',   pronoun:'he'},
+  {name:'Luna',  emoji:'🦄',trait:'sparkly',  pronoun:'she'},
+];
+const SETTINGS = [
+  {name:'the Jungle',           emoji:'🌴',where:'deep in the jungle'},
+  {name:'Outer Space',          emoji:'🚀',where:'far out in space'},
+  {name:'an Underwater Kingdom',emoji:'🌊',where:'under the sea'},
+  {name:'a Magic School',       emoji:'🏫',where:'at a magic school'},
+  {name:'the Snowy Mountains',  emoji:'🏔️',where:'high in the snowy mountains'},
+  {name:'a Candy Kingdom',      emoji:'🍭',where:'in a land made of candy'},
+];
+const TWISTS = [
+  {emoji:'🗺️',name:'Magic Map',    what:'found a mysterious glowing map',                    end:'The map led to a treasure full of the most wonderful surprises!'},
+  {emoji:'🐣',name:'Tiny Voice',   what:'heard a tiny voice crying for help',                end:'It was a baby dragon who just wanted a hug and a friend!'},
+  {emoji:'🚪',name:'Secret Door',  what:'discovered a door nobody had seen',                 end:'Behind the door was a whole new world full of rainbows and laughter!'},
+  {emoji:'⚡',name:'Superpower!',  what:'woke up with a brand-new superpower',               end:'With the power of kindness, everything turned out perfectly!'},
+  {emoji:'🔄',name:'Body Swap!',   what:'accidentally switched bodies with their best friend',end:'After the silliest day ever, they switched back and laughed about it forever!'},
+  {emoji:'🌱',name:'Magic Seed',   what:'found a magic seed that grew overnight',             end:'By morning, the seed became a giant tree full of books and toys for everyone!'},
+];
+
+let selChar=null, selSetting=null, selTwist=null;
+const TEMPLATES=[
+  function(c,s,t){
+    const pr=c.pronoun==='he'?'he':c.pronoun==='she'?'she':'it';
+    const pos=c.pronoun==='he'?'his':c.pronoun==='she'?'her':'its';
+    return `One day, <span class="highlight">${c.emoji} ${c.name}</span> the ${c.trait} one packed a little bag and set off to ${s.where}.\nThe sun was shining and the air smelled like adventure — ${c.name} could hardly wait to see what was waiting!\nWhile exploring, ${pr} ${t.what}. ${c.name}'s eyes went wide with surprise.\n${c.name} had never seen anything quite like it before. ${pr} stood very still and thought hard about what to do next.\nBut being ${c.trait}, ${c.name} took a deep breath, stood up tall, and decided to face it head on.\nAnd then... <span class="highlight">${t.end}</span>\n${c.name} headed home that evening with ${pos} heart full of joy — and already dreaming about the next big adventure!`;
+  },
+  function(c,s,t){
+    const pr=c.pronoun==='he'?'he':c.pronoun==='she'?'she':'it';
+    const pos=c.pronoun==='he'?'his':c.pronoun==='she'?'her':'its';
+    return `<span class="highlight">${c.emoji} ${c.name}</span> was exploring ${s.where} one bright and sunny morning, whistling a happy little tune.\nEverything around ${pr} looked so colourful and new — there was so much to see and discover!\nSuddenly, ${pr} ${t.what}! ${c.name} froze on the spot, heart beating fast.\n"What should I do?" thought ${c.name}, looking around carefully.\n${c.name} took a big deep breath, thought of how ${c.trait} ${pr} always was, and decided to be brave.\nWith a grin and a sparkle in ${pos} eyes, ${pr} used every bit of ${pos} ${c.trait} spirit.\nIn the end... <span class="highlight">${t.end}</span>\nIt turned out to be the most wonderful day ${c.name} had ever had — what a truly magical adventure!`;
+  },
+  function(c,s,t){
+    const pr=c.pronoun==='he'?'he':c.pronoun==='she'?'she':'it';
+    const pos=c.pronoun==='he'?'his':c.pronoun==='she'?'her':'its';
+    return `Nobody expected <span class="highlight">${c.emoji} ${c.name}</span> to travel all the way to ${s.where} — but ${pr} did!\n${c.name} had always dreamed of visiting this amazing place, and today that dream finally came true.\nRight away, ${pr} ${t.what}. Everything went very quiet for just a moment.\nAt first, ${c.name} wasn't quite sure what to think. It was all so surprising and a little bit mysterious!\nBut ${c.name} was ${c.trait} — and ${c.trait} heroes don't give up easily.\nSo ${pr} looked at it with wide eyes, an open heart, and the biggest smile in the whole world.\nThe most amazing thing happened: <span class="highlight">${t.end}</span>\nAnd from that day on, ${c.name} always said — the very best adventures are the ones you never planned for!`;
+  },
+];
+
+function speakPreK(text){
+  if(localStorage.getItem('kg_grade')!=='prek')return;
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);u.rate=0.85;u.pitch=1.1;
+  speechSynthesis.speak(u);
+}
+function showScreen(id){
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='step1') setTimeout(()=>speakPreK('Pick your hero! '+CHARACTERS.map(c=>c.name+' the '+c.trait).join('. ')),400);
+  if(id==='step2') setTimeout(()=>speakPreK('Where does the story happen? '+SETTINGS.map(s=>s.name).join('. ')),400);
+  if(id==='step3') setTimeout(()=>speakPreK('What happens in your story? '+TWISTS.map(t=>t.name).join('. ')),400);
+}
+
+function makePickGrid(containerId, items, onPick, nextBtnId, extraKey){
+  const grid=document.getElementById(containerId);grid.innerHTML='';
+  items.forEach((item,i)=>{
+    const b=document.createElement('button');b.className='pick-btn';
+    b.innerHTML=`<span class="pick-emoji">${item.emoji}</span><span class="pick-name">${item.name}</span>${item.trait?`<span class="pick-trait">${item.trait}</span>`:''}`;
+    b.onclick=()=>{
+      grid.querySelectorAll('.pick-btn').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected');
+      onPick(item);
+      document.getElementById(nextBtnId).disabled=false;
+    };
+    grid.appendChild(b);
+  });
+}
+
+makePickGrid('charGrid',    CHARACTERS, c=>{selChar=c;},    'nextChar',    'trait');
+makePickGrid('settingGrid', SETTINGS,   s=>{selSetting=s;}, 'nextSetting', null);
+makePickGrid('twistGrid',   TWISTS,     t=>{selTwist=t;},   'nextTwist',   null);
+setTimeout(()=>speakPreK('Pick your hero! '+CHARACTERS.map(c=>c.name+' the '+c.trait).join('. ')),500);
+
+function goStep2(){if(!selChar)return;showScreen('step2');}
+function goStep3(){if(!selSetting)return;showScreen('step3');}
+
+function buildStory(){
+  if(!selChar||!selSetting||!selTwist)return;
+  const template=TEMPLATES[Math.floor(Math.random()*TEMPLATES.length)];
+  const body=template(selChar,selSetting,selTwist);
+  document.getElementById('storyAvatar').textContent=selChar.emoji;
+  document.getElementById('storyTitle').textContent=`${selChar.name}'s Big Adventure`;
+  document.getElementById('storySettingLabel').textContent=`📍 ${selSetting.name}`;
+  document.getElementById('storyText').innerHTML=body.split('\n').join('<br><br>');
+  document.getElementById('storyEnding').textContent='🌟 The End! 🌟';
+  sprayConfetti();
+  showScreen('storyScreen');
+}
+
+function readAloud(){
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const text=document.getElementById('storyText').innerText+'\n'+document.getElementById('storyEnding').innerText;
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.rate=0.88;utt.pitch=1.1;
+  const btn=document.getElementById('readBtn');
+  btn.textContent='⏹ Stop';
+  utt.onend=()=>{btn.textContent='🔊 Read!';};
+  btn.onclick=()=>{
+    if(speechSynthesis.speaking){speechSynthesis.cancel();btn.textContent='🔊 Read!';btn.onclick=readAloud;}
+    else readAloud();
+  };
+  speechSynthesis.speak(utt);
+}
+
+function sprayConfetti(){
+  const cols=['#FF6B9D','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#B388EB'];
+  for(let i=0;i<55;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]}`;
+    document.body.appendChild(el);
+    const tx=(Math.random()-.5)*300,ty=window.innerHeight+50;
+    el.animate([{opacity:1,transform:'rotate(0)'},{opacity:0,transform:`translate(${tx}px,${ty}px) rotate(${Math.random()*720}deg)`}],
+      {duration:1800+Math.random()*800,delay:Math.random()*500}).onfinish=()=>el.remove();
+  }
+}
+</script>
+</body>
+</html>

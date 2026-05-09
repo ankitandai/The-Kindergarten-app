@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Runner!</title>
+<script src="avatar-chip.js"></script>
 <style>
 /* ── reset ── */
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -222,6 +223,23 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
 #runner.custom .rc-leg-r{top:86px;left:24px;width:12px;height:40px;background:#2a4060;}
 #runner.custom .rc-shoe{left:-3px;width:18px;height:9px;background:#333;border-bottom:2px solid #111;}
 
+/* ── SPRITE avatar — same body layout as custom, avatar image as the face ── */
+#runner.sprite .rc-head{top:0;left:3px;width:48px;height:48px;overflow:hidden;}
+#runner.sprite .rc-face.sprite-face{
+  display:block;mix-blend-mode:normal;
+  background-repeat:no-repeat;background-size:cover;background-position:center top;
+}
+#runner.sprite .rc-neck{top:46px;left:19px;width:11px;height:5px;background:#C9834A;}
+#runner.sprite .rc-torso{top:49px;left:12px;width:24px;height:32px;background:#667eea;}
+#runner.sprite .rc-arm-l{top:50px;left:5px; width:9px;height:24px;background:#667eea;}
+#runner.sprite .rc-arm-r{top:50px;left:28px;width:9px;height:24px;background:#667eea;}
+#runner.sprite .rc-hand{background:#C9834A;}
+#runner.sprite .rc-hips{top:79px;left:14px;width:22px;height:8px;background:#3a5f8a;}
+/* top:86 + height:40 = 126 ✓ */
+#runner.sprite .rc-leg-l{top:86px;left:12px;width:12px;height:40px;background:#3a5f8a;}
+#runner.sprite .rc-leg-r{top:86px;left:24px;width:12px;height:40px;background:#3a5f8a;}
+#runner.sprite .rc-shoe{left:-3px;width:18px;height:9px;background:#333;border-bottom:2px solid #111;}
+
 /* ── game scene ── */
 #scene{display:none;position:fixed;inset:0;overflow:hidden;}
 #sky{position:absolute;inset:0;background:linear-gradient(180deg,#87CEEB 0%,#B3E5FC 62%,#C8E6C9 100%);}
@@ -351,16 +369,17 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
 <!-- ══ WELCOME ══ -->
 <div id="welcomeScreen" class="lobby show">
   <div class="card">
-    <a href="index.html" style="position:absolute;top:18px;left:18px;text-decoration:none;background:#f0f0ff;border:2px solid #c0c0e0;border-radius:50px;padding:7px 16px;font-size:.88em;font-weight:700;color:#4a4a8a;display:inline-flex;align-items:center;gap:6px;">🏠 Home</a>
+    <div style="display:flex;justify-content:flex-start;margin-bottom:4px;">
+      <a href="index.html" onclick="if('speechSynthesis' in window)speechSynthesis.cancel()" style="text-decoration:none;background:#f0f0ff;border:2px solid #c0c0e0;border-radius:50px;padding:7px 16px;font-size:.88em;font-weight:700;color:#4a4a8a;display:inline-flex;align-items:center;gap:6px;">🏠 Home</a>
+    </div>
     <span class="mascot">🦊</span>
     <h1>Math Runner!</h1>
     <p class="sub">Answer questions to keep running!<br>How long is your play session today?</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;max-width:520px;margin:0 auto;">
-      <button class="btn-t" onclick="selectTimeSecs(30)" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333;grid-column:1/-1;">🧪 30 Seconds &nbsp;<small style="font-weight:400;font-size:.78em;opacity:.8;">(test mode)</small></button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:400px;margin:0 auto;">
       <button class="btn-t" onclick="selectTime(15)"><span>⏱️</span>15 Min</button>
       <button class="btn-t" onclick="selectTime(30)"><span>⏱️</span>30 Min</button>
       <button class="btn-t" onclick="selectTime(45)"><span>⏱️</span>45 Min</button>
-      <button class="btn-t" onclick="selectTime(60)" style="grid-column:1/-1;"><span>⏱️</span>1 Hour</button>
+      <button class="btn-t" onclick="selectTime(60)"><span>⏱️</span>1 Hour</button>
     </div>
   </div>
 </div>
@@ -481,6 +500,7 @@ h2{font-size:2em;color:#4a4a8a;margin-bottom:14px;}
       <img class="rc-face vaana-face" src="Avatar/Vaana - Head.png" alt="">
       <img class="rc-face aaru-face"  src="Avatar/Aaru - head.png"  alt="">
       <div class="rc-face custom-face" id="customFace">😊</div>
+      <div class="rc-face sprite-face" id="spriteFace"></div>
     </div>
     <div class="rc-neck"></div>
     <div class="rc-arm-l"><div class="rc-hand"></div></div>
@@ -601,6 +621,7 @@ const G = {
 
 // ══ SCREEN NAV ══════════════════════════════
 function showLobby(id){
+    if('speechSynthesis' in window) speechSynthesis.cancel();
     document.querySelectorAll('.lobby').forEach(el=>el.classList.remove('show'));
     document.getElementById('scene').style.display='none';
     document.getElementById(id).classList.add('show');
@@ -615,9 +636,25 @@ function goWelcome(){ closeModals(); clearTimers(); showLobby('welcomeScreen'); 
 function goGrade()  { closeModals(); clearTimers(); showLobby('gradeScreen'); updateGradeButtons(); }
 function endGame()  { closeModals(); clearTimers(); renderResults(); showLobby('resultsScreen'); sprayConfetti(); }
 
+if('speechSynthesis' in window) speechSynthesis.cancel();
+window.addEventListener('beforeunload',()=>{ if('speechSynthesis' in window) speechSynthesis.cancel(); });
 // ══ LOBBY FLOW ══════════════════════════════
-function selectTime(mins){ G.sessionSecs=mins*60; showLobby('gradeScreen'); updateGradeButtons(); }
-function selectTimeSecs(secs){ G.sessionSecs=secs; showLobby('gradeScreen'); updateGradeButtons(); }
+function speakPreK(text){
+  if(localStorage.getItem('kg_grade')!=='prek')return;
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);u.rate=0.85;u.pitch=1.1;
+  speechSynthesis.speak(u);
+}
+setTimeout(()=>speakPreK('Math Runner! How long do you want to play? Choose 15 minutes, 30 minutes, 45 minutes, or 1 hour.'),500);
+const _MATH_GRADE_MAP = { prek:'pre-k', k:'kindergarten', g1:'1st', g2:'2nd', g3:'3rd', g4:'4th' };
+function _afterTimeChosen() {
+  const g = localStorage.getItem('kg_grade');
+  const mapped = g && _MATH_GRADE_MAP[g];
+  if (mapped) { selectGrade(mapped); } else { showLobby('gradeScreen'); updateGradeButtons(); }
+}
+function selectTime(mins)     { if('speechSynthesis' in window) speechSynthesis.cancel(); G.sessionSecs=mins*60; _afterTimeChosen(); }
+function selectTimeSecs(secs) { if('speechSynthesis' in window) speechSynthesis.cancel(); G.sessionSecs=secs;    _afterTimeChosen(); }
 function selectGrade(g){
     G.grade=g;
     const savedLv=parseInt(localStorage.getItem('kg_bestlevel_'+g)||'1');
@@ -627,10 +664,12 @@ function selectGrade(g){
     if(saved==='vaana'||saved==='aaru'){
         G.char=saved;
         const r=document.getElementById('runner');
-        r.classList.remove('vaana','aaru','custom'); r.classList.add(saved);
+        r.classList.remove('vaana','aaru','custom','sprite'); r.classList.add(saved);
         beginSession();
     } else if(saved==='custom'){
         G.char='custom'; applyCustomAvatar(); beginSession();
+    } else if(saved==='sprite'){
+        G.char='sprite'; applySprite(); beginSession();
     } else {
         showLobby('charScreen');
     }
@@ -638,27 +677,44 @@ function selectGrade(g){
 function selectChar(c){
     G.char=c; G.score=0; G.correct=0; G.wrong=0;
     const r=document.getElementById('runner');
-    r.classList.remove('vaana','aaru','custom');
+    r.classList.remove('vaana','aaru','custom','sprite');
     r.classList.add(c);
     beginSession();
 }
+function applySprite(){
+    const data=JSON.parse(localStorage.getItem('kg_sprite_avatar')||'{}');
+    const r=document.getElementById('runner');
+    r.classList.remove('vaana','aaru','custom','sprite'); r.classList.add('sprite');
+    const faceEl=document.getElementById('spriteFace');
+    faceEl.style.backgroundImage=`url('${data.src}')`;
+}
 function applyCustomAvatar(){
     const data=JSON.parse(localStorage.getItem('kg_custom_avatar')||'{}');
-    const emoji=data.emoji||'😊';
-    const color=data.color||'#667eea';
+    const outfit=data.outfit||data.color||'#667eea';
+    const skin  =data.skin  ||'#FDDBB4';
     const r=document.getElementById('runner');
     r.classList.remove('vaana','aaru','custom'); r.classList.add('custom');
-    // emoji face
-    document.getElementById('customFace').textContent=emoji;
-    // shirt colour via inline CSS custom property
-    r.style.setProperty('--custom-shirt',color);
-    // also apply colour to torso + arms directly (custom props need declaration on :root or host)
+    // outfit colour on torso + arms
     const torso=r.querySelector('.rc-torso');
     const armL =r.querySelector('.rc-arm-l');
     const armR =r.querySelector('.rc-arm-r');
-    if(torso) torso.style.background=color;
-    if(armL)  armL.style.background=color;
-    if(armR)  armR.style.background=color;
+    if(torso) torso.style.background=outfit;
+    if(armL)  armL.style.background=outfit;
+    if(armR)  armR.style.background=outfit;
+    // skin colour on neck + hands
+    const neck=r.querySelector('.rc-neck');
+    r.querySelectorAll('.rc-hand').forEach(h=>h.style.background=skin);
+    if(neck) neck.style.background=skin;
+    // SVG face (head-cropped avatar) in the face slot
+    const faceEl=document.getElementById('customFace');
+    faceEl.style.cssText='display:block;overflow:hidden;width:48px;height:48px;';
+    faceEl.innerHTML=buildAvatarHeadSVG(
+        skin,
+        data.hair   ||'bowl',
+        data.hairCol||'#1a1a1a',
+        data.face   ||'girl_sweet',
+        outfit
+    );
 }
 
 // ══ GRADE BUTTONS — show saved level ════════
@@ -694,11 +750,13 @@ function lpPlay(){
     const saved=localStorage.getItem('kg_avatar');
     if(saved==='vaana'||saved==='aaru'){
         G.char=saved;
-        document.getElementById('runner').classList.remove('vaana','aaru','custom');
+        document.getElementById('runner').classList.remove('vaana','aaru','custom','sprite');
         document.getElementById('runner').classList.add(saved);
         beginSession();
     } else if(saved==='custom'){
         G.char='custom'; applyCustomAvatar(); beginSession();
+    } else if(saved==='sprite'){
+        G.char='sprite'; applySprite(); beginSession();
     } else {
         showLobby('charScreen');
     }

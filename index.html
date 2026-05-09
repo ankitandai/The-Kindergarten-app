@@ -149,16 +149,26 @@
   @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
   .greeting { font-family:'Bowlby One',sans-serif; font-size:25px; text-align:center; }
 
-  .game-cards { display:flex; gap:14px; width:100%; justify-content:center; flex-wrap:wrap; }
+  .game-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; max-width:500px; }
   .game-card {
-    flex:1; min-width:176px; max-width:220px;
-    border:4px solid var(--ink); border-radius:26px; box-shadow:5px 5px 0 var(--ink);
+    border:4px solid var(--ink); border-radius:22px; box-shadow:5px 5px 0 var(--ink);
     cursor:pointer; transition:transform .12s,box-shadow .12s;
-    text-align:center; padding:24px 14px 20px;
-    display:flex; flex-direction:column; align-items:center; gap:9px;
+    text-align:center; padding:16px 8px 14px;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
   }
   .game-card:hover  { transform:translateY(-4px); box-shadow:5px 9px 0 var(--ink); }
   .game-card:active { transform:translate(5px,5px); box-shadow:0 0 0 var(--ink); }
+  .game-topbar { display:flex; align-items:center; justify-content:space-between; width:100%; max-width:500px; }
+  .daily-corner-btn {
+    background:linear-gradient(135deg,#f7971e,#ffd200);
+    border:3px solid var(--ink); border-radius:14px; box-shadow:3px 3px 0 var(--ink);
+    padding:7px 13px; cursor:pointer; display:flex; flex-direction:column;
+    align-items:center; gap:1px; font-family:'Fredoka',sans-serif;
+    transition:transform .1s,box-shadow .1s;
+  }
+  .daily-corner-btn:active { transform:translate(3px,3px); box-shadow:0 0 0 var(--ink); }
+  .daily-corner-emoji { font-size:22px; line-height:1; }
+  .daily-corner-label { font-size:10px; font-weight:700; color:var(--ink); }
   .game-card.math    { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
   .game-card.word    { background:var(--yellow); color:var(--ink); }
   .game-card.science { background:linear-gradient(135deg,#11998e,#38ef7d); color:var(--ink); }
@@ -166,10 +176,13 @@
   .game-card.flags   { background:linear-gradient(135deg,#5C6BC0,#9575CD); color:white; }
   .game-card.shapes  { background:linear-gradient(135deg,#a855f7,#ec4899); color:white; }
   .game-card.mix     { background:linear-gradient(135deg,#f59e0b,#ef4444); color:white; }
-  .game-icon { font-size:56px; line-height:1; }
-  .game-name { font-family:'Bowlby One',sans-serif; font-size:21px; line-height:1.2; }
-  .game-desc { font-size:13px; font-weight:600; opacity:.85; }
-  @media (min-width:480px) { .game-card { min-width:140px; } }
+  .game-card.memory  { background:linear-gradient(135deg,#ff758c,#ff4b2b); color:white; }
+  .game-card.emotion { background:linear-gradient(135deg,#FFD93D,#FF9A3C); color:var(--ink); }
+  .game-card.sorting { background:linear-gradient(135deg,#56CCF2,#2F80ED); color:white; }
+  .game-card.story   { background:linear-gradient(135deg,#DA22FF,#9733EE); color:white; }
+  .game-icon { font-size:36px; line-height:1; }
+  .game-name { font-family:'Bowlby One',sans-serif; font-size:14px; line-height:1.2; }
+  .game-desc { font-size:11px; font-weight:600; opacity:.85; }
 
   /* ── shared buttons ── */
   .back-btn {
@@ -188,6 +201,37 @@
   }
   .big-btn:active  { transform:translate(4px,4px); box-shadow:0 0 0 var(--ink); }
   .big-btn:disabled { opacity:.5; cursor:default; }
+
+  /* ── grade screen ── */
+  .grade-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; width:100%; max-width:400px; }
+  .grade-btn {
+    border:4px solid var(--ink); border-radius:24px; box-shadow:5px 5px 0 var(--ink);
+    padding:22px 12px 18px; cursor:pointer; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:transform .12s,box-shadow .12s;
+    font-family:'Fredoka',sans-serif; background:white;
+  }
+  .grade-btn:hover  { transform:translateY(-4px); box-shadow:5px 9px 0 var(--ink); }
+  .grade-btn:active { transform:translate(5px,5px); box-shadow:0 0 0 var(--ink); }
+  .grade-emoji { font-size:38px; line-height:1; }
+  .grade-name  { font-family:'Bowlby One',sans-serif; font-size:18px; }
+  .grade-age   { font-size:12px; font-weight:600; color:rgba(0,0,0,0.5); margin-top:-2px; }
+
+  /* ── skip link ── */
+  .skip-link {
+    font-size:14px; font-weight:700; color:var(--ink); text-decoration:underline;
+    cursor:pointer; opacity:0.5; margin-top:2px;
+    background:none; border:none; font-family:'Fredoka',sans-serif;
+  }
+  .skip-link:hover { opacity:1; }
+
+  /* ── grade badge on game screen ── */
+  .grade-badge {
+    display:none; align-items:center; gap:6px;
+    background:white; border:3px solid var(--ink); border-radius:999px;
+    padding:5px 14px; font-size:13px; font-weight:700;
+    box-shadow:2px 2px 0 var(--ink);
+  }
 
   /* ── decorative ── */
   .starburst { position:fixed; pointer-events:none; z-index:0; opacity:.14; animation:spin 18s linear infinite; font-size:1.8em; }
@@ -278,6 +322,7 @@
       <div class="avatar-title">Make your own ⭐</div>
     </div>
   </div>
+  <button class="skip-link" onclick="skipToAllGames()">Skip ahead — browse all games →</button>
 </div>
 
 <!-- ══ SCREEN 2 — CREATE YOUR AVATAR ══ -->
@@ -330,15 +375,29 @@
   <button class="big-btn" onclick="confirmCustom()">All Done! Let's Go! 🎉</button>
 </div>
 
+<!-- ══ SCREEN 2.5 — PICK YOUR GRADE ══ -->
+<div class="screen" id="gradeScreen">
+  <button class="back-btn" onclick="showScreen('avatarScreen')">←</button>
+  <div class="screen-title">What grade are you in? 📚</div>
+  <div class="grade-grid" id="gradeGrid"></div>
+</div>
+
 <!-- ══ SCREEN 3 — CHOOSE A GAME ══ -->
 <div class="screen" id="gameScreen">
-  <button class="back-btn" onclick="showScreen('avatarScreen')">←</button>
+  <div class="game-topbar">
+    <button class="back-btn" onclick="showScreen('gradeScreen')">←</button>
+    <button class="daily-corner-btn" onclick="launchDaily()">
+      <span class="daily-corner-emoji">⭐</span>
+      <span class="daily-corner-label">Daily Challenge</span>
+    </button>
+  </div>
 
   <div class="selected-wrap">
     <img  class="selected-img"    id="selectedImg"    src="" alt="" style="display:none">
     <div  class="selected-svg"    id="selectedSVG"></div>
     <div  class="selected-sprite" id="selectedSprite"></div>
     <p    class="greeting"     id="greeting">Hi! What do you want to play?</p>
+    <div  class="grade-badge"  id="gradeBadge"></div>
   </div>
 
   <div class="game-cards">
@@ -347,10 +406,20 @@
       <div class="game-name">Math Runner</div>
       <div class="game-desc">Answer questions &amp; keep running!</div>
     </div>
+    <div class="game-card shapes"  onclick="launchShapes()">
+      <div class="game-icon">🔷</div>
+      <div class="game-name">Shape Explorer</div>
+      <div class="game-desc">Learn shapes across 3 levels!</div>
+    </div>
     <div class="game-card word"    onclick="launchWord()">
       <div class="game-icon">🔤</div>
       <div class="game-name">Build a Word</div>
       <div class="game-desc">Spell words and earn stars!</div>
+    </div>
+    <div class="game-card story"   onclick="launchStory()">
+      <div class="game-icon">📖</div>
+      <div class="game-name">Story Builder</div>
+      <div class="game-desc">Build and hear your own story!</div>
     </div>
     <div class="game-card science" onclick="launchScience()">
       <div class="game-icon">🔬</div>
@@ -360,22 +429,32 @@
     <div class="game-card maps"    onclick="launchMaps()">
       <div class="game-icon">🗺️</div>
       <div class="game-name">Maps Safari</div>
-      <div class="game-desc">Test your world geography skills!</div>
+      <div class="game-desc">Explore world geography!</div>
     </div>
     <div class="game-card flags"   onclick="launchFlags()">
       <div class="game-icon">🚩</div>
       <div class="game-name">Flag Quest</div>
       <div class="game-desc">Match flags to countries!</div>
     </div>
-    <div class="game-card shapes"  onclick="launchShapes()">
-      <div class="game-icon">🔷</div>
-      <div class="game-name">Shape Explorer</div>
-      <div class="game-desc">Learn shapes across 3 levels!</div>
-    </div>
     <div class="game-card mix"     onclick="launchMix()">
       <div class="game-icon">🎲</div>
       <div class="game-name">Mix It Up!</div>
       <div class="game-desc">Math · Flags · Geo · Science!</div>
+    </div>
+    <div class="game-card memory"  onclick="launchMemory()">
+      <div class="game-icon">🃏</div>
+      <div class="game-name">Memory Match</div>
+      <div class="game-desc">Flip cards, find the pairs!</div>
+    </div>
+    <div class="game-card sorting" onclick="launchSorting()">
+      <div class="game-icon">🗂️</div>
+      <div class="game-name">Sorting Bin</div>
+      <div class="game-desc">Sort animals, food and more!</div>
+    </div>
+    <div class="game-card emotion" onclick="launchEmotion()">
+      <div class="game-icon">😊</div>
+      <div class="game-name">Emotion Faces</div>
+      <div class="game-desc">Match feelings to faces!</div>
     </div>
   </div>
 </div>
@@ -384,6 +463,30 @@
 // ════════════════════════════════════════════════════════
 //  DATA
 // ════════════════════════════════════════════════════════
+
+const GRADES = [
+  { id:'prek', label:'Pre-K',        age:'Age 4–5',  emoji:'🌱', color:'#95E06C' },
+  { id:'k',    label:'Kindergarten', age:'Age 5–6',  emoji:'⭐', color:'#FFD93D' },
+  { id:'g1',   label:'Grade 1',      age:'Age 6–7',  emoji:'🚀', color:'#4ECDC4' },
+  { id:'g2',   label:'Grade 2',      age:'Age 7–8',  emoji:'🔥', color:'#FF9A3C' },
+  { id:'g3',   label:'Grade 3',      age:'Age 8–9',  emoji:'💡', color:'#B388EB' },
+  { id:'g4',   label:'Grade 4',      age:'Age 9–10', emoji:'🏆', color:'#FF6B9D' },
+];
+
+const GAME_GRADES = {
+  math:    ['prek','k','g1','g2','g3','g4'],
+  word:    ['prek','k','g1','g2'],
+  science: ['prek','k','g1','g2','g3','g4'],
+  shapes:  ['prek','k','g1'],
+  maps:    ['k','g1','g2','g3','g4'],
+  flags:   ['g1','g2','g3','g4'],
+  mix:     ['k','g1','g2','g3','g4'],
+  memory:  ['prek','k','g1','g2'],
+  emotion: ['prek'],
+  sorting: ['prek','k'],
+  story:   ['prek','k','g1','g2'],
+};
+
 const BUILT_IN = {
   vaana: { name:'Vaana', img:'Avatar/Vaana.png', head:'Avatar/Vaana - Head.png', title:'The Naughty One 😜' },
   aaru:  { name:'Aaru',  img:'Avatar/Aaru.png',  head:'Avatar/Aaru - head.png',  title:'The Explorer 🧭' },
@@ -875,6 +978,7 @@ buildStyleGrid('hairStyleGrid',  HAIR_STYLES,   v => chosenHair    = v);
 buildSwatchRow('hairColorRow',   HAIR_COLORS,   v => chosenHairCol = v, 'hair-swatch');
 buildFacePicker();
 buildSwatchRow('outfitColorRow', OUTFIT_COLORS, v => chosenOutfit  = v, 'outfit-swatch');
+buildGradeGrid();
 
 // ════════════════════════════════════════════════════════
 //  PREVIEW
@@ -987,7 +1091,7 @@ function pickBuiltIn(char) {
   document.getElementById('selectedSVG').style.display = 'none';
   document.getElementById('greeting').innerHTML =
     `Hi <span style="color:var(--pink)">${av.name}</span>! 👋<br>What do you want to play?`;
-  showScreen('gameScreen');
+  goToGrade();
 }
 
 function confirmCustom() {
@@ -1016,7 +1120,7 @@ function confirmCustom() {
     localStorage.setItem('kg_custom_avatar', JSON.stringify(data));
     applyCustomToGameScreen(data);
   }
-  showScreen('gameScreen');
+  goToGrade();
 }
 
 function applyCustomToGameScreen(d) {
@@ -1040,6 +1144,63 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
+// ── Grade flow ──────────────────────────────────────────
+function buildGradeGrid() {
+  const grid = document.getElementById('gradeGrid');
+  GRADES.forEach(g => {
+    const btn = document.createElement('button');
+    btn.className = 'grade-btn';
+    btn.style.background = g.color;
+    btn.innerHTML = `<span class="grade-emoji">${g.emoji}</span>
+                     <span class="grade-name">${g.label}</span>
+                     <span class="grade-age">${g.age}</span>`;
+    btn.onclick = () => pickGrade(g.id);
+    grid.appendChild(btn);
+  });
+}
+
+function goToGrade() {
+  showScreen('gradeScreen');
+}
+
+function pickGrade(gradeId) {
+  localStorage.setItem('kg_grade', gradeId);
+  applyGrade(gradeId);
+  showScreen('gameScreen');
+}
+
+function applyGrade(gradeId) {
+  filterGamesByGrade(gradeId);
+  const grade = GRADES.find(g => g.id === gradeId);
+  const badge = document.getElementById('gradeBadge');
+  if (grade) {
+    badge.textContent = `${grade.emoji} ${grade.label}`;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function filterGamesByGrade(gradeId) {
+  document.querySelectorAll('.game-card').forEach(c => c.style.display = '');
+  if (!gradeId) return;
+  Object.entries(GAME_GRADES).forEach(([key, grades]) => {
+    const card = document.querySelector(`.game-card.${key}`);
+    if (card) card.style.display = grades.includes(gradeId) ? '' : 'none';
+  });
+}
+
+function skipToAllGames() {
+  localStorage.removeItem('kg_grade');
+  document.getElementById('selectedImg').style.display = 'none';
+  document.getElementById('selectedSVG').style.display = 'none';
+  document.getElementById('selectedSprite').style.display = 'none';
+  document.getElementById('greeting').textContent = 'What do you want to play?';
+  document.getElementById('gradeBadge').style.display = 'none';
+  document.querySelectorAll('.game-card').forEach(c => c.style.display = '');
+  showScreen('gameScreen');
+}
+
 // ════════════════════════════════════════════════════════
 //  GAME LAUNCHERS
 // ════════════════════════════════════════════════════════
@@ -1050,32 +1211,13 @@ function launchMaps()    { window.location.href = 'maps.html';            }
 function launchFlags()   { window.location.href = 'flags.html';           }
 function launchShapes()  { window.location.href = 'shapes.html';          }
 function launchMix()     { window.location.href = 'mix.html';             }
+function launchMemory()  { window.location.href = 'memory-match.html';    }
+function launchEmotion() { window.location.href = 'emotion-faces.html';   }
+function launchSorting() { window.location.href = 'sorting-bin.html';     }
+function launchDaily()   { window.location.href = 'daily-challenge.html'; }
+function launchStory()   { window.location.href = 'story-builder.html';   }
 
-// ════════════════════════════════════════════════════════
-//  RESTORE STATE ON LOAD
-// ════════════════════════════════════════════════════════
-(function () {
-  const saved = localStorage.getItem('kg_avatar');
-  if (!saved) return;
-  if (saved === 'vaana' || saved === 'aaru') {
-    const av = BUILT_IN[saved];
-    document.getElementById('selectedImg').src = av.head;
-    document.getElementById('selectedImg').style.display = 'block';
-    document.getElementById('selectedSVG').style.display = 'none';
-    document.getElementById('greeting').innerHTML =
-      `Hi <span style="color:var(--pink)">${av.name}</span>! 👋<br>What do you want to play?`;
-  } else if (saved === 'custom') {
-    try {
-      const d = JSON.parse(localStorage.getItem('kg_custom_avatar') || '{}');
-      applyCustomToGameScreen(d);
-    } catch(e) {}
-  } else if (saved === 'sprite') {
-    try {
-      const d = JSON.parse(localStorage.getItem('kg_sprite_avatar') || '{}');
-      applySpriteToGameScreen(d);
-    } catch(e) {}
-  }
-})();
+// Always start on the avatar selection screen — no auto-restore navigation.
 </script>
 </body>
 </html>

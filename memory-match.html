@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Memory Match</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#FFF4E0;--ink:#2B2A4C;--pink:#FF6B9D;--yellow:#FFD93D;--blue:#4ECDC4;--green:#95E06C;--orange:#FF9A3C;--purple:#B388EB; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Fredoka',sans-serif;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;touch-action:manipulation;min-height:100vh;background-image:radial-gradient(circle at 15% 20%,rgba(255,117,140,.18) 0%,transparent 40%),radial-gradient(circle at 85% 75%,rgba(78,205,196,.18) 0%,transparent 40%);}
+.screen{display:none;flex-direction:column;align-items:center;padding:18px 14px 36px;min-height:100vh;gap:14px;}
+.screen.active{display:flex;}
+.topbar{display:flex;align-items:center;gap:10px;width:100%;max-width:500px;}
+.back-btn{background:white;border:3px solid var(--ink);border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--ink);flex-shrink:0;transition:transform .1s,box-shadow .1s;font-family:inherit;}
+.home-btn{background:white;border:3px solid var(--ink);border-radius:50%;width:44px;height:44px;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--ink);flex-shrink:0;text-decoration:none;margin-left:auto;}
+.back-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:22px;}
+.big-title{font-family:'Bowlby One',sans-serif;font-size:34px;text-align:center;color:var(--pink);text-shadow:3px 3px 0 var(--ink);}
+.sub{font-size:15px;font-weight:600;text-align:center;opacity:.7;}
+.section-label{font-family:'Bowlby One',sans-serif;font-size:17px;align-self:flex-start;width:100%;max-width:480px;}
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:480px;}
+.theme-btn{border:4px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);padding:14px 6px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .12s,box-shadow .12s;background:white;font-family:'Fredoka',sans-serif;}
+.theme-btn:hover{transform:translateY(-3px);box-shadow:4px 7px 0 var(--ink);}
+.theme-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.theme-btn.selected{background:var(--yellow);}
+.theme-icon{font-size:32px;line-height:1;}
+.theme-name{font-family:'Bowlby One',sans-serif;font-size:13px;}
+.diff-row{display:flex;gap:10px;width:100%;max-width:480px;}
+.diff-btn{flex:1;border:4px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);padding:13px 6px;cursor:pointer;text-align:center;font-family:'Fredoka',sans-serif;font-size:15px;font-weight:700;background:white;transition:transform .12s,box-shadow .12s;}
+.diff-btn:hover{transform:translateY(-2px);box-shadow:4px 6px 0 var(--ink);}
+.diff-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.diff-btn.selected{background:var(--blue);color:white;}
+.play-btn{width:100%;max-width:320px;padding:15px;font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;border:4px solid var(--ink);border-radius:16px;background:var(--green);box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:var(--ink);transition:transform .1s,box-shadow .1s;}
+.play-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.play-btn:disabled{opacity:.5;cursor:default;}
+.play-btn.purple{background:var(--purple);color:white;}
+.score-row{display:flex;gap:12px;align-items:center;}
+.score-chip{background:white;border:3px solid var(--ink);border-radius:999px;padding:5px 14px;font-family:'Bowlby One',sans-serif;font-size:15px;box-shadow:2px 2px 0 var(--ink);}
+.card-grid{display:grid;gap:10px;width:100%;max-width:480px;justify-content:center;}
+.card-grid.easy  {grid-template-columns:repeat(3,1fr);max-width:280px;}
+.card-grid.medium{grid-template-columns:repeat(4,1fr);max-width:400px;}
+.card-grid.hard  {grid-template-columns:repeat(4,1fr);max-width:400px;}
+.mem-card{aspect-ratio:1;border-radius:16px;cursor:pointer;position:relative;transform-style:preserve-3d;transition:transform .35s;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);}
+.mem-card.flipped{transform:rotateY(180deg);}
+.mem-card.matched{border-color:#22c55e;box-shadow:3px 3px 0 #22c55e;pointer-events:none;}
+.card-face,.card-back{position:absolute;inset:0;border-radius:13px;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.card-back{background:linear-gradient(135deg,#667eea,#764ba2);font-size:26px;}
+.card-face{background:white;transform:rotateY(180deg);font-size:34px;}
+.card-grid.easy .card-face{font-size:28px;}
+.win-emoji{font-size:80px;animation:bob .7s ease infinite alternate;}
+@keyframes bob{to{transform:translateY(-14px);}}
+.win-title{font-family:'Bowlby One',sans-serif;font-size:32px;color:var(--pink);text-shadow:3px 3px 0 var(--ink);}
+.stat-row{display:flex;gap:14px;}
+.stat-box{background:white;border:4px solid var(--ink);border-radius:18px;box-shadow:5px 5px 0 var(--ink);padding:14px 22px;text-align:center;}
+.stat-num{font-family:'Bowlby One',sans-serif;font-size:34px;color:var(--purple);}
+.stat-label{font-size:13px;font-weight:700;color:#888;}
+.confetti-piece{position:fixed;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:999;}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="homeScreen">
+  <div class="topbar">
+    <button class="back-btn" onclick="if('speechSynthesis' in window)speechSynthesis.cancel();history.back()">←</button>
+    <div class="topbar-title">🃏 Memory Match</div>
+    <a class="home-btn" href="index.html" onclick="if('speechSynthesis' in window)speechSynthesis.cancel()">🏠</a>
+  </div>
+  <div class="big-title">Memory Match! 🃏</div>
+  <p class="sub">Flip cards and find matching pairs!</p>
+  <div class="section-label">🎨 Pick a Theme:</div>
+  <div class="theme-grid" id="themeGrid"></div>
+  <div class="section-label">📐 Difficulty:</div>
+  <div class="diff-row" id="diffRow"></div>
+  <button class="play-btn" id="playBtn" onclick="startGame()" disabled>Let's Play! 🎉</button>
+</div>
+
+<div class="screen" id="gameScreen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="topbar-title" id="gameTitle">Memory Match</div>
+  </div>
+  <div class="score-row">
+    <div class="score-chip">Moves: <span id="moveCount">0</span></div>
+    <div class="score-chip">Pairs: <span id="pairCount">0</span>/<span id="pairTotal">0</span></div>
+  </div>
+  <div class="card-grid" id="cardGrid"></div>
+</div>
+
+<div class="screen" id="winScreen">
+  <div class="win-emoji">🏆</div>
+  <div class="win-title">You Did It!</div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num" id="winMoves">0</div><div class="stat-label">Moves</div></div>
+    <div class="stat-box"><div class="stat-num" id="winTime">0s</div><div class="stat-label">Time</div></div>
+  </div>
+  <button class="play-btn" onclick="startGame()">Play Again! 🔁</button>
+  <button class="play-btn purple" onclick="goHome()">Change Theme 🎨</button>
+</div>
+
+<script>
+if('speechSynthesis' in window) speechSynthesis.cancel();
+window.addEventListener('beforeunload',()=>{ if('speechSynthesis' in window) speechSynthesis.cancel(); });
+const THEMES = [
+  {id:'animals',name:'Animals',icon:'🐾',cards:['🐶','🐱','🐻','🐼','🦊','🐨','🦁','🐯','🐸','🦋','🐝','🦄']},
+  {id:'food',   name:'Food',   icon:'🍎',cards:['🍎','🍌','🍕','🌽','🥕','🍦','🍓','🍇','🧁','🍩','🥑','🍋']},
+  {id:'space',  name:'Space',  icon:'🚀',cards:['🚀','⭐','🌙','🪐','☄️','👾','🌍','🔭','🛸','💫','🌟','🌌']},
+  {id:'sports', name:'Sports', icon:'⚽',cards:['⚽','🏀','🎾','🏊','🚴','🏋️','🎯','🎳','🏄','⛷️','🥊','🎮']},
+  {id:'nature', name:'Nature', icon:'🌸',cards:['🌸','🌻','🍀','🌈','🦀','🐢','🦩','🐬','🦔','🌵','🍁','🦜']},
+  {id:'faces',  name:'Faces',  icon:'😊',cards:['😊','😂','😍','🤩','😎','🥳','😴','🤔','😜','🤗','😇','🥰']},
+];
+const DIFFS = [
+  {id:'easy',  label:'Easy',  emoji:'🌱',pairs:3,cls:'easy'},
+  {id:'medium',label:'Medium',emoji:'⭐',pairs:6,cls:'medium'},
+  {id:'hard',  label:'Hard',  emoji:'🔥',pairs:8,cls:'hard'},
+];
+const GRADE_DIFF = {prek:'easy',k:'medium',g1:'hard',g2:'hard',g3:'hard',g4:'hard'};
+
+let selTheme=null, selDiff=null, flipped=[], matched=0, moves=0, startTime=0, busy=false;
+
+function speakPreK(text){
+  if(localStorage.getItem('kg_grade')!=='prek')return;
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);u.rate=0.85;u.pitch=1.1;
+  speechSynthesis.speak(u);
+}
+function showScreen(id){
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='homeScreen') setTimeout(()=>speakPreK('Memory Match! Pick a theme to play with. '+THEMES.map(t=>t.name).join('. ')+'. Then press Lets Play!'),400);
+}
+function goHome(){showScreen('homeScreen');}
+function shuffle(a){return[...a].sort(()=>Math.random()-.5);}
+
+(function buildPickers(){
+  const tg=document.getElementById('themeGrid');
+  THEMES.forEach(t=>{
+    const b=document.createElement('button');b.className='theme-btn';
+    b.innerHTML=`<span class="theme-icon">${t.icon}</span><span class="theme-name">${t.name}</span>`;
+    b.onclick=()=>{selTheme=t;tg.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');checkReady();};
+    tg.appendChild(b);
+  });
+  const dr=document.getElementById('diffRow');
+  DIFFS.forEach(d=>{
+    const b=document.createElement('button');b.className='diff-btn';
+    b.innerHTML=`${d.emoji} ${d.label}`;
+    b.onclick=()=>{selDiff=d;dr.querySelectorAll('.diff-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');checkReady();};
+    dr.appendChild(b);
+  });
+  // auto-apply grade
+  const g=localStorage.getItem('kg_grade');
+  const diffId=g&&GRADE_DIFF[g];
+  if(diffId){
+    const idx=DIFFS.findIndex(d=>d.id===diffId);
+    if(idx>=0){selDiff=DIFFS[idx];dr.querySelectorAll('.diff-btn')[idx].classList.add('selected');checkReady();}
+  }
+})();
+
+function checkReady(){document.getElementById('playBtn').disabled=!(selTheme&&selDiff);}
+setTimeout(()=>speakPreK('Memory Match! Pick a theme to play with. '+THEMES.map(t=>t.name).join('. ')+'. Then press Lets Play!'),500);
+
+function startGame(){
+  if(!selTheme||!selDiff)return;
+  const pool=shuffle(selTheme.cards).slice(0,selDiff.pairs);
+  const deck=shuffle([...pool,...pool]);
+  flipped=[];matched=0;moves=0;busy=false;startTime=Date.now();
+  document.getElementById('moveCount').textContent='0';
+  document.getElementById('pairCount').textContent='0';
+  document.getElementById('pairTotal').textContent=selDiff.pairs;
+  document.getElementById('gameTitle').textContent=`${selTheme.icon} ${selTheme.name}`;
+  const grid=document.getElementById('cardGrid');
+  grid.className=`card-grid ${selDiff.cls}`;grid.innerHTML='';
+  deck.forEach((emoji,i)=>{
+    const card=document.createElement('div');card.className='mem-card';
+    card.dataset.emoji=emoji;card.dataset.idx=i;
+    card.innerHTML=`<div class="card-back">🌟</div><div class="card-face">${emoji}</div>`;
+    card.onclick=()=>flipCard(card);
+    grid.appendChild(card);
+  });
+  showScreen('gameScreen');
+}
+
+function flipCard(card){
+  if(busy||flipped.length>=2||card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');
+  flipped.push(card);
+  if(flipped.length===2){
+    moves++;document.getElementById('moveCount').textContent=moves;
+    busy=true;
+    setTimeout(checkMatch,700);
+  }
+}
+
+function checkMatch(){
+  const[a,b]=flipped;
+  if(a.dataset.emoji===b.dataset.emoji){
+    a.classList.add('matched');b.classList.add('matched');
+    matched++;document.getElementById('pairCount').textContent=matched;
+    flipped=[];busy=false;
+    if(matched===selDiff.pairs)setTimeout(showWin,400);
+  } else {
+    a.classList.remove('flipped');b.classList.remove('flipped');
+    flipped=[];busy=false;
+  }
+}
+
+function showWin(){
+  const secs=Math.round((Date.now()-startTime)/1000);
+  document.getElementById('winMoves').textContent=moves;
+  document.getElementById('winTime').textContent=secs+'s';
+  sprayConfetti();showScreen('winScreen');
+}
+
+function sprayConfetti(){
+  const cols=['#FF6B9D','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#B388EB'];
+  for(let i=0;i<60;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]};transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    const tx=(Math.random()-.5)*300,ty=window.innerHeight+50,rot=Math.random()*720;
+    el.animate([{transform:'rotate(0deg)',opacity:1},{transform:`translate(${tx}px,${ty}px) rotate(${rot}deg)`,opacity:0}],
+      {duration:1800+Math.random()*1000,easing:'cubic-bezier(0,0.9,0.57,1)',delay:Math.random()*600}).onfinish=()=>el.remove();
+  }
+}
+</script>
+</body>
+</html>

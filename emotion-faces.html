@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Emotion Faces</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFF4E0;--ink:#2B2A4C;--pink:#FF6B9D;--yellow:#FFD93D;--blue:#4ECDC4;--green:#95E06C;--orange:#FF9A3C;--purple:#B388EB;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Fredoka',sans-serif;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;touch-action:manipulation;min-height:100vh;background-image:radial-gradient(circle at 20% 20%,rgba(255,217,61,.2) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(255,107,157,.15) 0%,transparent 40%);}
+.screen{display:none;flex-direction:column;align-items:center;padding:18px 14px 36px;min-height:100vh;gap:14px;}
+.screen.active{display:flex;}
+.topbar{display:flex;align-items:center;gap:10px;width:100%;max-width:500px;}
+.back-btn{background:white;border:3px solid var(--ink);border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--ink);flex-shrink:0;transition:transform .1s,box-shadow .1s;font-family:inherit;}
+.back-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.home-btn{background:white;border:3px solid var(--ink);border-radius:50%;width:44px;height:44px;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--ink);flex-shrink:0;text-decoration:none;margin-left:auto;}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:22px;}
+.big-title{font-family:'Bowlby One',sans-serif;font-size:34px;text-align:center;color:var(--orange);text-shadow:3px 3px 0 var(--ink);}
+.sub{font-size:15px;font-weight:600;text-align:center;opacity:.7;}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:400px;}
+.mode-btn{border:4px solid var(--ink);border-radius:20px;box-shadow:5px 5px 0 var(--ink);padding:20px 12px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .12s,box-shadow .12s;background:white;font-family:'Fredoka',sans-serif;}
+.mode-btn:hover{transform:translateY(-3px);box-shadow:5px 8px 0 var(--ink);}
+.mode-btn:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+.mode-icon{font-size:44px;line-height:1;}
+.mode-name{font-family:'Bowlby One',sans-serif;font-size:17px;}
+.mode-desc{font-size:12px;font-weight:600;opacity:.7;}
+/* game */
+.progress-bar-wrap{width:100%;max-width:400px;height:14px;background:#e0d4c0;border-radius:99px;border:2px solid var(--ink);overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:99px;transition:width .3s;}
+.score-chip{background:white;border:3px solid var(--ink);border-radius:999px;padding:5px 16px;font-family:'Bowlby One',sans-serif;font-size:16px;box-shadow:2px 2px 0 var(--ink);}
+.question-box{background:white;border:5px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:24px 20px;text-align:center;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.q-prompt{font-size:15px;font-weight:700;opacity:.7;}
+.q-main-emoji{font-size:90px;line-height:1;animation:bounce .6s ease infinite alternate;}
+.q-main-word{font-family:'Bowlby One',sans-serif;font-size:32px;color:var(--ink);}
+@keyframes bounce{to{transform:translateY(-8px);}}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:400px;}
+.opt-btn{border:4px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);padding:16px 10px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .12s,box-shadow .12s;background:white;font-family:'Fredoka',sans-serif;}
+.opt-btn:hover{transform:translateY(-3px);box-shadow:4px 7px 0 var(--ink);}
+.opt-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.opt-btn.correct{background:#dcfce7;border-color:#22c55e;box-shadow:4px 4px 0 #22c55e;}
+.opt-btn.wrong{background:#fee2e2;border-color:#ef4444;box-shadow:4px 4px 0 #ef4444;}
+.speak-btn{background:white;border:3px solid var(--ink);border-radius:999px;padding:7px 20px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:2px 2px 0 var(--ink);font-family:'Fredoka',sans-serif;transition:transform .1s,box-shadow .1s;}
+.speak-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.opt-emoji{font-size:40px;line-height:1;}
+.opt-word{font-family:'Bowlby One',sans-serif;font-size:15px;}
+/* win */
+.win-title{font-family:'Bowlby One',sans-serif;font-size:34px;color:var(--pink);text-shadow:3px 3px 0 var(--ink);}
+.win-score{font-family:'Bowlby One',sans-serif;font-size:22px;}
+.win-emoji{font-size:80px;animation:bounce .6s ease infinite alternate;}
+.play-btn{width:100%;max-width:320px;padding:15px;font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;border:4px solid var(--ink);border-radius:16px;background:var(--green);box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:var(--ink);transition:transform .1s,box-shadow .1s;}
+.play-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.play-btn.alt{background:var(--yellow);}
+.confetti-piece{position:fixed;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:999;}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="homeScreen">
+  <div class="topbar">
+    <button class="back-btn" onclick="if('speechSynthesis' in window)speechSynthesis.cancel();history.back()">←</button>
+    <div class="topbar-title">😊 Emotion Faces</div>
+    <a class="home-btn" href="index.html" onclick="if('speechSynthesis' in window)speechSynthesis.cancel()">🏠</a>
+  </div>
+  <div class="big-title">Emotion Faces! 😊</div>
+  <p class="sub">How are they feeling? Can you tell?</p>
+  <div class="mode-grid">
+    <button class="mode-btn" onclick="startGame('name')">
+      <span class="mode-icon">🤔</span>
+      <span class="mode-name">Name It!</span>
+      <span class="mode-desc">See a face, pick the feeling</span>
+    </button>
+    <button class="mode-btn" onclick="startGame('find')">
+      <span class="mode-icon">🔍</span>
+      <span class="mode-name">Find It!</span>
+      <span class="mode-desc">See a word, find the face</span>
+    </button>
+  </div>
+</div>
+
+<div class="screen" id="gameScreen">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('homeScreen')">←</button>
+    <div class="score-chip">⭐ <span id="scoreEl">0</span> / 10</div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+  <div class="question-box" id="questionBox">
+    <div class="q-prompt" id="qPrompt"></div>
+    <div id="qMain"></div>
+    <button class="speak-btn" id="speakBtn" onclick="reSpeak()">🔊 Hear it again</button>
+  </div>
+  <div class="options-grid" id="optionsGrid"></div>
+</div>
+
+<div class="screen" id="winScreen">
+  <div class="win-emoji" id="winEmoji">🌟</div>
+  <div class="win-title">Well Done!</div>
+  <div class="win-score">You got <span id="finalScore" style="color:var(--orange)">0</span> out of 10! 🎉</div>
+  <button class="play-btn" onclick="startGame(currentMode)">Play Again! 🔁</button>
+  <button class="play-btn alt" onclick="showScreen('homeScreen')">Switch Mode 🔄</button>
+</div>
+
+<script>
+if('speechSynthesis' in window) speechSynthesis.cancel();
+window.addEventListener('beforeunload',()=>{ if('speechSynthesis' in window) speechSynthesis.cancel(); });
+// All 12 emotions; basic subset for younger grades
+const ALL_EMOTIONS = [
+  {word:'Happy',   emoji:'😊',color:'#FFD93D'},
+  {word:'Sad',     emoji:'😢',color:'#4ECDC4'},
+  {word:'Angry',   emoji:'😠',color:'#FF6B9D'},
+  {word:'Scared',  emoji:'😨',color:'#B388EB'},
+  {word:'Excited', emoji:'🤩',color:'#FF9A3C'},
+  {word:'Silly',   emoji:'😜',color:'#95E06C'},
+  {word:'Sleepy',  emoji:'😴',color:'#667eea'},
+  {word:'Surprised',emoji:'😲',color:'#FF9A3C'},
+  {word:'Proud',   emoji:'😎',color:'#22c55e'},
+  {word:'Confused',emoji:'🤔',color:'#FF6B9D'},
+  {word:'Shy',     emoji:'🫣',color:'#f59e0b'},
+  {word:'Worried', emoji:'😟',color:'#B388EB'},
+];
+const BASIC_EMOTIONS = ALL_EMOTIONS.slice(0,6); // for pre-k/k
+
+let pool=ALL_EMOTIONS, currentMode='name', qIdx=0, score=0, deck=[], answered=false;
+let _speakText='';
+
+function speak(text){
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=0.88;u.pitch=1.1;
+  speechSynthesis.speak(u);
+}
+function reSpeak(){ speak(_speakText); }
+function speakPreK(text){ if(localStorage.getItem('kg_grade')==='prek') speak(text); }
+
+function getPool(){
+  const g=localStorage.getItem('kg_grade');
+  return (g==='prek'||g==='k') ? BASIC_EMOTIONS : ALL_EMOTIONS;
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if('speechSynthesis' in window)speechSynthesis.cancel();
+  if(id==='homeScreen') setTimeout(()=>speakPreK('How are they feeling? Choose Name It to see a face and pick the feeling. Or choose Find It to see a word and find the face!'),400);
+}
+function shuffle(a){return[...a].sort(()=>Math.random()-.5);}
+
+function startGame(mode){
+  currentMode=mode;pool=getPool();
+  deck=shuffle([...pool]).slice(0,10);
+  qIdx=0;score=0;answered=false;
+  document.getElementById('scoreEl').textContent='0';
+  document.getElementById('progressBar').style.width='0%';
+  showScreen('gameScreen');
+  nextQuestion();
+}
+
+function nextQuestion(){
+  if(qIdx>=deck.length){showWin();return;}
+  answered=false;
+  const correct=deck[qIdx];
+  const distractors=shuffle(pool.filter(e=>e.word!==correct.word)).slice(0,3);
+  const opts=shuffle([correct,...distractors]);
+  document.getElementById('progressBar').style.width=`${(qIdx/deck.length)*100}%`;
+
+  if(currentMode==='name'){
+    // show emoji, pick word
+    document.getElementById('qPrompt').textContent='What feeling is this face showing?';
+    document.getElementById('qMain').innerHTML=`<div class="q-main-emoji">${correct.emoji}</div>`;
+    _speakText='What feeling is this face showing?';
+    const grid=document.getElementById('optionsGrid');grid.innerHTML='';
+    opts.forEach(o=>{
+      const b=document.createElement('button');b.className='opt-btn';
+      b.innerHTML=`<span class="opt-word">${o.word}</span>`;
+      b.style.borderColor=o.color;b.style.boxShadow=`4px 4px 0 ${o.color}`;
+      b.onclick=()=>answer(b,o.word===correct.word,correct);
+      grid.appendChild(b);
+    });
+  } else {
+    // show word, pick emoji
+    document.getElementById('qPrompt').textContent='Find the face that shows:';
+    document.getElementById('qMain').innerHTML=`<div class="q-main-word">${correct.word}</div>`;
+    _speakText=`Find the face that shows: ${correct.word}!`;
+    const grid=document.getElementById('optionsGrid');grid.innerHTML='';
+    opts.forEach(o=>{
+      const b=document.createElement('button');b.className='opt-btn';
+      b.innerHTML=`<span class="opt-emoji">${o.emoji}</span>`;
+      b.onclick=()=>answer(b,o.word===correct.word,correct);
+      grid.appendChild(b);
+    });
+  }
+  setTimeout(()=>speak(_speakText), 200);
+}
+
+function answer(btn,isCorrect,correct){
+  if(answered)return;answered=true;
+  btn.classList.add(isCorrect?'correct':'wrong');
+  if(isCorrect){
+    score++;document.getElementById('scoreEl').textContent=score;
+    speak(`Correct! That is ${correct.word}!`);
+  } else {
+    const allBtns=document.querySelectorAll('.opt-btn');
+    allBtns.forEach(b=>{
+      const content=b.querySelector('.opt-word')||b.querySelector('.opt-emoji');
+      if(content&&(content.textContent===correct.word||content.textContent===correct.emoji))b.classList.add('correct');
+    });
+    speak(`Not quite. The answer is ${correct.word}.`);
+  }
+  setTimeout(()=>{qIdx++;nextQuestion();},1400);
+}
+
+function showWin(){
+  document.getElementById('finalScore').textContent=score;
+  const emojis=['😢','😕','🙂','😊','😄','🤩'];
+  document.getElementById('winEmoji').textContent=emojis[Math.min(5,Math.floor(score/2))];
+  if(score>=8)sprayConfetti();
+  showScreen('winScreen');
+}
+
+setTimeout(()=>speakPreK('How are they feeling? Choose Name It to see a face and pick the feeling. Or choose Find It to see a word and find the face!'),500);
+
+function sprayConfetti(){
+  const cols=['#FF6B9D','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#B388EB'];
+  for(let i=0;i<50;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]}`;
+    document.body.appendChild(el);
+    const tx=(Math.random()-.5)*300,ty=window.innerHeight+50;
+    el.animate([{opacity:1,transform:'rotate(0)'},{opacity:0,transform:`translate(${tx}px,${ty}px) rotate(${Math.random()*720}deg)`}],
+      {duration:1800+Math.random()*800,delay:Math.random()*500}).onfinish=()=>el.remove();
+  }
+}
+</script>
+</body>
+</html>

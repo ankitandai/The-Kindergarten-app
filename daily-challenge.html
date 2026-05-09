@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Daily Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFF4E0;--ink:#2B2A4C;--pink:#FF6B9D;--yellow:#FFD93D;--blue:#4ECDC4;--green:#95E06C;--orange:#FF9A3C;--purple:#B388EB;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Fredoka',sans-serif;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;touch-action:manipulation;min-height:100vh;background-image:radial-gradient(circle at 20% 20%,rgba(247,151,30,.2) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(255,210,0,.2) 0%,transparent 40%);}
+.screen{display:none;flex-direction:column;align-items:center;padding:18px 14px 36px;min-height:100vh;gap:16px;}
+.screen.active{display:flex;}
+.topbar{display:flex;align-items:center;gap:10px;width:100%;max-width:500px;}
+.back-btn{background:white;border:3px solid var(--ink);border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--ink);flex-shrink:0;transition:transform .1s,box-shadow .1s;font-family:inherit;}
+.home-btn{background:white;border:3px solid var(--ink);border-radius:50%;width:44px;height:44px;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--ink);flex-shrink:0;text-decoration:none;margin-left:auto;}
+.back-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:22px;}
+/* date card */
+.date-card{background:linear-gradient(135deg,#f7971e,#ffd200);border:4px solid var(--ink);border-radius:24px;box-shadow:6px 6px 0 var(--ink);padding:18px 28px;text-align:center;width:100%;max-width:400px;}
+.date-label{font-size:13px;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:1px;}
+.date-text{font-family:'Bowlby One',sans-serif;font-size:24px;}
+.streak-row{display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700;margin-top:6px;}
+/* question card */
+.q-card{background:white;border:5px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:26px 20px;text-align:center;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.q-category{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;}
+.q-text{font-family:'Bowlby One',sans-serif;font-size:22px;line-height:1.3;color:var(--ink);}
+.options-col{display:flex;flex-direction:column;gap:10px;width:100%;max-width:420px;}
+.opt-btn{border:4px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);padding:14px 18px;cursor:pointer;text-align:left;font-family:'Fredoka',sans-serif;font-size:17px;font-weight:600;background:white;transition:transform .12s,box-shadow .12s;display:flex;align-items:center;gap:12px;}
+.opt-btn:hover{transform:translateY(-2px);box-shadow:4px 6px 0 var(--ink);}
+.opt-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.opt-btn.correct{background:#dcfce7;border-color:#22c55e;box-shadow:4px 4px 0 #22c55e;}
+.opt-btn.wrong{background:#fee2e2;border-color:#ef4444;box-shadow:4px 4px 0 #ef4444;}
+.opt-letter{font-family:'Bowlby One',sans-serif;font-size:18px;width:30px;text-align:center;flex-shrink:0;}
+/* done card */
+.done-card{background:linear-gradient(135deg,#f7971e,#ffd200);border:5px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:28px 22px;text-align:center;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.done-emoji{font-size:64px;animation:bob .7s ease infinite alternate;}
+@keyframes bob{to{transform:translateY(-10px);}}
+.done-title{font-family:'Bowlby One',sans-serif;font-size:28px;}
+.done-sub{font-size:15px;font-weight:600;opacity:.75;}
+/* result */
+.result-card{background:white;border:5px solid var(--ink);border-radius:28px;box-shadow:6px 6px 0 var(--ink);padding:26px 20px;text-align:center;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.result-emoji{font-size:72px;}
+.result-title{font-family:'Bowlby One',sans-serif;font-size:26px;}
+.result-sub{font-size:15px;font-weight:600;opacity:.7;}
+.result-fact{background:var(--yellow);border:3px solid var(--ink);border-radius:16px;padding:14px 18px;font-size:15px;font-weight:600;line-height:1.4;width:100%;}
+.play-btn{width:100%;max-width:320px;padding:15px;font-family:'Fredoka',sans-serif;font-size:20px;font-weight:700;border:4px solid var(--ink);border-radius:16px;background:var(--green);box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:var(--ink);transition:transform .1s,box-shadow .1s;}
+.play-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+.confetti-piece{position:fixed;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:999;}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="loadScreen">
+  <!-- resolved in JS -->
+</div>
+
+<div class="screen" id="questionScreen">
+  <div class="topbar">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="topbar-title">⭐ Daily Challenge</div>
+    <a class="home-btn" href="index.html">🏠</a>
+  </div>
+  <div class="date-card">
+    <div class="date-label">Today's Challenge</div>
+    <div class="date-text" id="dateText"></div>
+    <div class="streak-row">🔥 Streak: <span id="streakEl">0</span> day<span id="streakS">s</span></div>
+  </div>
+  <div class="q-card">
+    <div class="q-category" id="qCategory"></div>
+    <div class="q-text" id="qText"></div>
+  </div>
+  <div class="options-col" id="optionsCol"></div>
+</div>
+
+<div class="screen" id="resultScreen">
+  <div class="topbar">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="topbar-title">⭐ Daily Challenge</div>
+    <a class="home-btn" href="index.html">🏠</a>
+  </div>
+  <div class="result-card">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="result-title" id="resultTitle">Amazing!</div>
+    <div class="result-sub" id="resultSub"></div>
+    <div class="result-fact" id="resultFact" style="display:none"></div>
+  </div>
+  <div class="date-card" style="max-width:420px">
+    <div class="date-label">Your Streak</div>
+    <div class="date-text">🔥 <span id="resultStreak">0</span> day<span id="resultStreakS">s</span> in a row!</div>
+  </div>
+  <button class="play-btn" onclick="location.href='index.html'">Back to Games 🏠</button>
+</div>
+
+<div class="screen" id="doneScreen">
+  <div class="topbar">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="topbar-title">⭐ Daily Challenge</div>
+    <a class="home-btn" href="index.html">🏠</a>
+  </div>
+  <div class="done-card">
+    <div class="done-emoji">✅</div>
+    <div class="done-title">All Done Today!</div>
+    <div class="done-sub">You already completed today's challenge.<br>Come back tomorrow for a new one! 🌅</div>
+    <div style="font-family:'Bowlby One',sans-serif;font-size:18px;margin-top:6px;">🔥 Streak: <span id="doneStreak">0</span> days</div>
+  </div>
+  <button class="play-btn" onclick="location.href='index.html'">Back to Games 🏠</button>
+</div>
+
+<script>
+const QUESTIONS = [
+  // Pre-K / K
+  {q:'Which animal says "Moo"?',cat:'Animals',o:['Cow 🐮','Pig 🐷','Sheep 🐑','Duck 🦆'],a:0,g:['prek','k'],fact:'Cows say "moo" and give us milk!'},
+  {q:'What colour is a banana? 🍌',cat:'Colours',o:['Red','Blue','Yellow','Green'],a:2,g:['prek','k'],fact:'Bananas turn yellow when they are ripe and ready to eat!'},
+  {q:'Which shape has 3 sides?',cat:'Shapes',o:['Circle','Square','Triangle','Rectangle'],a:2,g:['prek','k'],fact:'A triangle has 3 sides and 3 corners — like a pizza slice!'},
+  {q:'What do bees make?',cat:'Nature',o:['Milk','Honey','Butter','Juice'],a:1,g:['prek','k'],fact:'Bees visit about 2 million flowers to make just one jar of honey!'},
+  {q:'What do caterpillars turn into?',cat:'Animals',o:['Bees','Flies','Butterflies','Ants'],a:2,g:['prek','k'],fact:'A caterpillar becomes a butterfly inside a cocoon — amazing!'},
+  {q:'How many fingers are on one hand?',cat:'Numbers',o:['3','4','5','6'],a:2,g:['prek','k'],fact:'We have 5 fingers on each hand and 10 fingers total!'},
+  {q:'Which animal lives in the sea?',cat:'Animals',o:['Lion 🦁','Dolphin 🐬','Rabbit 🐰','Elephant 🐘'],a:1,g:['prek','k'],fact:'Dolphins are super smart and love to play in the waves!'},
+  {q:'What colour is the sky on a sunny day?',cat:'Nature',o:['Green','Red','Blue','Orange'],a:2,g:['prek','k'],fact:'The sky looks blue because of how sunlight bounces through the air!'},
+  {q:'Which fruit is red and round?',cat:'Food',o:['Banana','Apple','Orange','Mango'],a:1,g:['prek','k'],fact:'Apples are one of the most popular fruits in the world!'},
+  {q:'How many legs does a dog have?',cat:'Animals',o:['2','4','6','8'],a:1,g:['prek','k'],fact:'Dogs run on 4 legs and can run very fast — up to 45 km/h!'},
+  // K / G1
+  {q:'What is 3 + 4?',cat:'Maths',o:['6','7','8','9'],a:1,g:['k','g1'],fact:'3 + 4 = 7! You can count on your fingers to check.'},
+  {q:'Which planet do we live on?',cat:'Space',o:['Mars','Venus','Earth','Jupiter'],a:2,g:['k','g1','g2'],fact:'Earth is the only planet we know has life on it!'},
+  {q:'How many days are in a week?',cat:'Time',o:['5','6','7','8'],a:2,g:['k','g1'],fact:'There are 7 days in a week — Monday through Sunday!'},
+  {q:'Which is bigger: an elephant or a mouse?',cat:'Animals',o:['Mouse 🐭','Elephant 🐘','Same size','Cannot tell'],a:1,g:['prek','k','g1'],fact:'Elephants are the largest land animals on Earth!'},
+  {q:'What do plants need to grow?',cat:'Science',o:['Only water','Only sun','Sun, water and soil','Just soil'],a:2,g:['k','g1'],fact:'Plants need sunlight, water and soil to grow healthy and strong!'},
+  {q:'What is 2 × 3?',cat:'Maths',o:['4','5','6','7'],a:2,g:['g1','g2'],fact:'2 × 3 = 6. Multiplication is just fast adding!'},
+  {q:'How many legs does a spider have?',cat:'Animals',o:['4','6','8','10'],a:2,g:['k','g1','g2'],fact:'Spiders have 8 legs — that is 2 more than insects!'},
+  {q:'What is the closest star to Earth?',cat:'Space',o:['Sirius','Polaris','The Moon','The Sun'],a:3,g:['g1','g2','g3'],fact:'The Sun is our closest star — it is 150 million km away!'},
+  {q:'Which continent is the largest?',cat:'Geography',o:['Africa','Europe','North America','Asia'],a:3,g:['g1','g2','g3'],fact:'Asia is the largest continent — it covers about 30% of Earth\'s land!'},
+  {q:'What is the biggest ocean?',cat:'Geography',o:['Atlantic','Indian','Pacific','Arctic'],a:2,g:['g1','g2','g3'],fact:'The Pacific Ocean is so big it covers about half of the Earth!'},
+  // G1 / G2
+  {q:'How many sides does a hexagon have?',cat:'Shapes',o:['5','6','7','8'],a:1,g:['g1','g2'],fact:'A hexagon has 6 sides — like a honeycomb cell made by bees!'},
+  {q:'What is 15 − 8?',cat:'Maths',o:['5','6','7','8'],a:2,g:['g1','g2'],fact:'15 − 8 = 7. Count back 8 from 15 to check!'},
+  {q:'Which animal has stripes?',cat:'Animals',o:['Giraffe','Leopard','Zebra 🦓','Elephant'],a:2,g:['k','g1'],fact:'Every zebra has a unique stripe pattern — like a fingerprint!'},
+  {q:'What do we call a baby frog?',cat:'Animals',o:['Cub','Tadpole','Kitten','Pup'],a:1,g:['g1','g2'],fact:'A baby frog is called a tadpole — it starts with a tail and no legs!'},
+  {q:'What is the capital of France?',cat:'Geography',o:['London','Berlin','Rome','Paris'],a:3,g:['g2','g3','g4'],fact:'Paris is the capital of France and is famous for the Eiffel Tower!'},
+  // G2 / G3
+  {q:'What is 7 × 8?',cat:'Maths',o:['54','56','58','60'],a:1,g:['g2','g3'],fact:'7 × 8 = 56. A trick: 5-6-7-8 → 56 = 7×8!'},
+  {q:'What planet is known as the Red Planet?',cat:'Space',o:['Venus','Jupiter','Mars','Saturn'],a:2,g:['g1','g2','g3'],fact:'Mars looks red because its soil contains iron that has rusted!'},
+  {q:'How many bones are in the human body?',cat:'Science',o:['106','206','306','406'],a:1,g:['g2','g3','g4'],fact:'Adults have 206 bones — babies start with about 270 that fuse together!'},
+  {q:'What gas do plants give off?',cat:'Science',o:['Carbon dioxide','Nitrogen','Oxygen','Hydrogen'],a:2,g:['g2','g3','g4'],fact:'Plants absorb CO₂ and release oxygen — they clean our air!'},
+  {q:'Which is the longest river in the world?',cat:'Geography',o:['Amazon','Mississippi','Nile','Congo'],a:2,g:['g2','g3','g4'],fact:'The Nile River in Africa is about 6,650 km long!'},
+  // G3 / G4
+  {q:'What is 12 × 12?',cat:'Maths',o:['124','134','144','154'],a:2,g:['g3','g4'],fact:'12 × 12 = 144. Knowing your 12 times table is super useful!'},
+  {q:'What is the powerhouse of the cell?',cat:'Science',o:['Nucleus','Mitochondria','Cell Wall','Ribosome'],a:1,g:['g3','g4'],fact:'Mitochondria produce energy for everything your body does!'},
+  {q:'How many continents are there?',cat:'Geography',o:['5','6','7','8'],a:2,g:['g1','g2','g3','g4'],fact:'There are 7 continents: Africa, Antarctica, Asia, Australia, Europe, North America and South America!'},
+  {q:'What is the speed of light?',cat:'Science',o:['300 km/s','3,000 km/s','300,000 km/s','3 million km/s'],a:2,g:['g3','g4'],fact:'Light travels at 300,000 km per second — it could go around Earth 7 times in one second!'},
+  {q:'What is ¾ as a decimal?',cat:'Maths',o:['0.34','0.57','0.75','0.80'],a:2,g:['g3','g4'],fact:'3 ÷ 4 = 0.75. Dividing the top by the bottom converts fractions to decimals!'},
+  {q:'Who painted the Mona Lisa?',cat:'Arts',o:['Picasso','Van Gogh','Leonardo da Vinci','Michelangelo'],a:2,g:['g3','g4'],fact:'Leonardo da Vinci painted the Mona Lisa around 1503-1519!'},
+];
+
+const TODAY = new Date().toISOString().slice(0,10);
+const DONE_KEY = `kg_daily_done_${TODAY}`;
+const STREAK_KEY = 'kg_daily_streak';
+const LAST_KEY  = 'kg_daily_last';
+
+function getStreak(){
+  const last = localStorage.getItem(LAST_KEY);
+  const streak = parseInt(localStorage.getItem(STREAK_KEY)||'0');
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(last===TODAY) return streak;
+  if(last===yesterday) return streak; // still valid, not yet incremented
+  return 0; // streak broken
+}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+
+function pickQuestion(){
+  const g = localStorage.getItem('kg_grade') || 'k';
+  const pool = QUESTIONS.filter(q=>q.g.includes(g));
+  if(!pool.length) return QUESTIONS[0];
+  // use date to pick consistently throughout the day
+  const seed = parseInt(TODAY.replace(/-/g,''));
+  return pool[seed % pool.length];
+}
+
+(function init(){
+  const streak = getStreak();
+  // Already done today?
+  if(localStorage.getItem(DONE_KEY)){
+    document.getElementById('doneStreak').textContent = streak;
+    showScreen('doneScreen'); return;
+  }
+  const q = pickQuestion();
+  // populate question screen
+  document.getElementById('dateText').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('streakEl').textContent = streak;
+  document.getElementById('streakS').textContent = streak===1?'':'s';
+  document.getElementById('qCategory').textContent = q.cat;
+  document.getElementById('qText').textContent = q.q;
+
+  const col = document.getElementById('optionsCol');
+  const letters = ['A','B','C','D'];
+  q.o.forEach((opt,i)=>{
+    const b = document.createElement('button');b.className='opt-btn';
+    b.innerHTML=`<span class="opt-letter">${letters[i]}</span>${opt}`;
+    b.onclick = ()=>answer(b,i===q.a,q);
+    col.appendChild(b);
+  });
+  showScreen('questionScreen');
+})();
+
+let answered = false;
+function answer(btn,isCorrect,q){
+  if(answered)return;answered=true;
+  btn.classList.add(isCorrect?'correct':'wrong');
+  if(!isCorrect){
+    document.querySelectorAll('.opt-btn')[q.a].classList.add('correct');
+  }
+  // save completion + streak
+  localStorage.setItem(DONE_KEY,'1');
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const last = localStorage.getItem(LAST_KEY);
+  let streak = parseInt(localStorage.getItem(STREAK_KEY)||'0');
+  if(last===yesterday) streak++; else if(last!==TODAY) streak=1;
+  localStorage.setItem(STREAK_KEY,streak);
+  localStorage.setItem(LAST_KEY,TODAY);
+
+  setTimeout(()=>{
+    document.getElementById('resultEmoji').textContent = isCorrect?'🎉':'🤔';
+    document.getElementById('resultTitle').textContent = isCorrect?'Correct!':'Not quite!';
+    document.getElementById('resultSub').textContent   = isCorrect?'You got today\'s challenge! Come back tomorrow for more.':'The answer was: '+q.o[q.a];
+    if(q.fact){
+      const fEl=document.getElementById('resultFact');fEl.textContent='💡 '+q.fact;fEl.style.display='block';
+    }
+    document.getElementById('resultStreak').textContent = streak;
+    document.getElementById('resultStreakS').textContent = streak===1?'':'s';
+    if(isCorrect)sprayConfetti();
+    showScreen('resultScreen');
+  },800);
+}
+
+function sprayConfetti(){
+  const cols=['#FF6B9D','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#B388EB'];
+  for(let i=0;i<50;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]}`;
+    document.body.appendChild(el);
+    const tx=(Math.random()-.5)*300,ty=window.innerHeight+50;
+    el.animate([{opacity:1,transform:'rotate(0)'},{opacity:0,transform:`translate(${tx}px,${ty}px) rotate(${Math.random()*720}deg)`}],
+      {duration:1800+Math.random()*800,delay:Math.random()*500}).onfinish=()=>el.remove();
+  }
+}
+</script>
+</body>
+</html>
