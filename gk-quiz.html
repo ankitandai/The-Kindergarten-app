@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>10-Second Quiz – Kindergarten Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Bowlby+One&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#FFF4E0;--ink:#2B2A4C;--pink:#FF6B9D;--yellow:#FFD93D;
+  --blue:#4ECDC4;--green:#95E06C;--orange:#FF9A3C;--purple:#B388EB;
+  --radius:16px;--shadow:5px 5px 0 var(--ink);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);font-family:'Fredoka',sans-serif;color:var(--ink);min-height:100dvh;overflow-x:hidden}
+
+/* ── Screens ── */
+.screen{display:none;flex-direction:column;align-items:center;min-height:100dvh}
+.screen.active{display:flex}
+
+/* ── Topbar ── */
+.topbar{
+  width:100%;display:flex;align-items:center;gap:8px;
+  padding:12px 14px 8px;flex-shrink:0;
+}
+.icon-btn{
+  width:40px;height:40px;border-radius:12px;border:3px solid var(--ink);
+  background:#fff;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:3px 3px 0 var(--ink);flex-shrink:0;
+  transition:transform .08s,box-shadow .08s;touch-action:manipulation;
+}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.topbar-title{font-family:'Bowlby One',sans-serif;font-size:1.3rem;flex:1;text-align:center}
+.chip{
+  background:#fff;border:3px solid var(--ink);border-radius:30px;
+  padding:4px 11px;font-size:.9rem;font-weight:700;
+  box-shadow:3px 3px 0 var(--ink);white-space:nowrap;flex-shrink:0;
+}
+
+/* ── HOME SCREEN ── */
+#homeScreen{padding:0 14px 32px}
+.home-hero{font-size:5rem;margin:10px 0 0;text-align:center;line-height:1;
+  animation:brainBob 2s ease-in-out infinite}
+@keyframes brainBob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+.home-title{
+  font-family:'Bowlby One',sans-serif;font-size:2rem;text-align:center;
+  color:var(--pink);text-shadow:3px 3px 0 var(--ink);margin-bottom:4px;
+}
+.home-sub{font-size:.95rem;font-weight:600;opacity:.65;text-align:center;margin-bottom:20px}
+
+.section-label{
+  font-size:.8rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;opacity:.5;margin-bottom:8px;align-self:flex-start;
+}
+
+.cat-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  width:100%;max-width:480px;margin-bottom:22px;
+}
+.cat-btn{
+  border:3px solid var(--ink);border-radius:14px;
+  background:#fff;cursor:pointer;padding:10px 4px 8px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  box-shadow:var(--shadow);transition:transform .08s,box-shadow .08s;
+  touch-action:manipulation;
+}
+.cat-btn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.cat-btn.selected{background:var(--yellow)}
+.cat-icon{font-size:1.6rem;line-height:1}
+.cat-name{font-size:.72rem;font-weight:700}
+.cat-count{font-size:.6rem;opacity:.5;font-weight:600}
+
+.play-btn{
+  width:100%;max-width:300px;padding:16px;border-radius:var(--radius);
+  border:3px solid var(--ink);background:var(--pink);
+  font-family:'Bowlby One',sans-serif;font-size:1.4rem;color:#fff;
+  cursor:pointer;box-shadow:var(--shadow);letter-spacing:.03em;
+  transition:transform .1s,box-shadow .1s;touch-action:manipulation;
+}
+.play-btn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+
+/* ── GAME SCREEN ── */
+#gameScreen{background:var(--bg)}
+.game-body{
+  display:flex;flex-direction:column;align-items:center;
+  padding:4px 14px 16px;gap:9px;flex:1;width:100%;max-width:520px;
+}
+
+/* Timer */
+.timer-wrap{
+  width:110px;height:110px;flex-shrink:0;
+  border:4px solid var(--ink);border-radius:50%;
+  background:#fff;box-shadow:var(--shadow);
+  position:relative;display:flex;align-items:center;justify-content:center;
+}
+.timer-svg{
+  position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;
+}
+.timer-track{fill:none;stroke:rgba(43,42,76,.1);stroke-width:7}
+.timer-arc{
+  fill:none;stroke:var(--green);stroke-width:7;stroke-linecap:round;
+  transition:stroke .15s;
+}
+.timer-digit{
+  font-family:'Bowlby One',sans-serif;font-size:2.4rem;
+  position:relative;z-index:1;line-height:1;transition:color .15s;
+  color:var(--green);
+}
+
+/* Progress bar under timer */
+.progress-bar-wrap{
+  width:100%;max-width:320px;
+  background:#fff;border:3px solid var(--ink);border-radius:30px;
+  height:14px;overflow:hidden;box-shadow:3px 3px 0 var(--ink);
+  flex-shrink:0;
+}
+.progress-bar-fill{
+  height:100%;background:var(--blue);border-radius:30px;
+  transition:width .3s ease;
+}
+
+/* Question card */
+.question-card{
+  width:100%;background:#fff;
+  border:3px solid var(--ink);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:12px 14px;
+  display:flex;flex-direction:column;gap:6px;flex-shrink:0;
+}
+.cat-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--yellow);border:2px solid var(--ink);border-radius:20px;
+  padding:2px 10px;font-size:.75rem;font-weight:700;align-self:flex-start;
+}
+.question-text{
+  font-size:1.1rem;font-weight:700;line-height:1.35;
+}
+
+/* Answer buttons */
+.answers{
+  display:flex;flex-direction:column;gap:7px;width:100%;
+}
+.answer-btn{
+  width:100%;padding:11px 12px;
+  border:3px solid var(--ink);border-radius:13px;
+  background:#fff;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:3px 3px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .12s;
+  touch-action:manipulation;text-align:left;
+  font-family:'Fredoka',sans-serif;font-size:1rem;font-weight:600;color:var(--ink);
+}
+.answer-btn:hover:not(:disabled){background:#f7f0ff}
+.answer-btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.answer-btn:disabled{cursor:default}
+.answer-btn.correct{background:var(--green)!important;border-color:var(--ink)}
+.answer-btn.wrong{background:var(--pink)!important;border-color:var(--ink)}
+.ans-label{
+  width:28px;height:28px;min-width:28px;border-radius:8px;
+  background:var(--ink);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bowlby One',sans-serif;font-size:.82rem;
+}
+.ans-text{flex:1;line-height:1.25}
+
+/* ── GAME OVER / WIN boxes ── */
+#gameOverScreen,#winScreen{justify-content:center;padding:20px 16px}
+.result-box{
+  max-width:380px;width:100%;
+  background:#fff;border:4px solid var(--ink);border-radius:24px;
+  box-shadow:var(--shadow);padding:26px 20px 22px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;
+}
+.result-emoji{font-size:4rem;line-height:1}
+.result-title{font-family:'Bowlby One',sans-serif;font-size:2rem}
+.result-sub{font-size:.95rem;font-weight:600;opacity:.65}
+
+.answer-reveal{
+  width:100%;background:var(--green);border:3px solid var(--ink);border-radius:14px;
+  padding:10px 14px;text-align:left;box-shadow:3px 3px 0 var(--ink);
+}
+.answer-reveal-label{font-size:.72rem;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.answer-reveal-text{font-size:1rem;font-weight:700}
+
+.q-reveal{
+  width:100%;background:rgba(43,42,76,.06);border:2px solid rgba(43,42,76,.15);
+  border-radius:12px;padding:8px 12px;text-align:left;font-size:.88rem;
+  font-weight:600;opacity:.75;font-style:italic;
+}
+
+.score-pill{
+  font-family:'Bowlby One',sans-serif;font-size:1.7rem;
+  background:var(--yellow);border:3px solid var(--ink);border-radius:16px;
+  padding:8px 24px;box-shadow:3px 3px 0 var(--ink);
+}
+
+.result-btns{display:flex;gap:10px;width:100%;margin-top:4px}
+.result-btn{
+  flex:1;padding:13px 4px;border-radius:var(--radius);
+  border:3px solid var(--ink);font-family:'Bowlby One',sans-serif;
+  font-size:.92rem;cursor:pointer;color:var(--ink);
+  box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s;touch-action:manipulation;
+}
+.result-btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.result-btn.primary{background:var(--green)}
+.result-btn.secondary{background:var(--blue)}
+
+/* Win specific */
+.win-stars{font-size:1.8rem;letter-spacing:4px;animation:starPulse 1s ease-in-out infinite alternate}
+@keyframes starPulse{0%{transform:scale(1)}100%{transform:scale(1.15)}}
+.streak-badge{
+  background:linear-gradient(135deg,#FF9A3C,#FFD93D);
+  border:3px solid var(--ink);border-radius:30px;
+  padding:6px 18px;font-family:'Bowlby One',sans-serif;font-size:1rem;
+  box-shadow:3px 3px 0 var(--ink);
+}
+
+/* Confetti */
+.confetti-piece{
+  position:fixed;top:-20px;border-radius:3px;pointer-events:none;z-index:9999;
+  animation:cfFall linear forwards;
+}
+@keyframes cfFall{
+  0%{transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0}
+}
+
+/* Pulse animation on correct */
+@keyframes correctPulse{
+  0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}
+}
+.answer-btn.correct{animation:correctPulse .3s ease}
+
+/* Timer urgent shake */
+@keyframes timerShake{
+  0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}
+}
+.timer-urgent{animation:timerShake .2s ease infinite}
+
+@media(max-width:380px){
+  .cat-grid{gap:6px}
+  .cat-btn{padding:8px 3px 6px}
+  .cat-icon{font-size:1.4rem}
+  .timer-wrap{width:95px;height:95px}
+  .timer-digit{font-size:2rem}
+  .question-text{font-size:1rem}
+  .answer-btn{padding:10px 10px;font-size:.92rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ HOME SCREEN ══════════════ -->
+<div id="homeScreen" class="screen active">
+  <div class="topbar">
+    <button class="icon-btn" onclick="window.location.href='index.html'">←</button>
+    <div class="topbar-title">10-Second Quiz</div>
+    <button class="icon-btn" onclick="window.location.href='index.html'">🏠</button>
+  </div>
+
+  <div class="home-hero">🧠</div>
+  <div class="home-title">10-Second Quiz!</div>
+  <div class="home-sub">10 questions · 10 seconds each · no wrong answers!</div>
+
+  <p class="section-label" style="max-width:480px;width:100%;padding:0 2px">Pick a category</p>
+  <div class="cat-grid" id="catGrid"></div>
+
+  <button class="play-btn" onclick="startGame()">▶ PLAY NOW</button>
+</div>
+
+<!-- ══════════════ GAME SCREEN ══════════════ -->
+<div id="gameScreen" class="screen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="quitGame()">←</button>
+    <div class="chip" id="qNumChip">Q 1/10</div>
+    <div style="flex:1"></div>
+    <div class="chip" id="streakChip">🔥 0</div>
+    <div class="chip" id="scoreChip">✅ 0</div>
+    <button class="icon-btn" onclick="quitGame()">🏠</button>
+  </div>
+
+  <div class="game-body">
+    <!-- Timer -->
+    <div class="timer-wrap" id="timerWrap">
+      <svg class="timer-svg" viewBox="0 0 100 100">
+        <circle class="timer-track" cx="50" cy="50" r="42"/>
+        <g transform="rotate(-90 50 50)">
+          <circle class="timer-arc" cx="50" cy="50" r="42" id="timerArc"/>
+        </g>
+      </svg>
+      <div class="timer-digit" id="timerDigit">5</div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar-wrap" style="width:100%">
+      <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+    </div>
+
+    <!-- Question -->
+    <div class="question-card">
+      <div class="cat-badge" id="catBadge">🔬 Science</div>
+      <div class="question-text" id="questionText">Loading...</div>
+    </div>
+
+    <!-- Answers -->
+    <div class="answers">
+      <button class="answer-btn" id="btn0"><span class="ans-label">A</span><span class="ans-text"></span></button>
+      <button class="answer-btn" id="btn1"><span class="ans-label">B</span><span class="ans-text"></span></button>
+      <button class="answer-btn" id="btn2"><span class="ans-label">C</span><span class="ans-text"></span></button>
+      <button class="answer-btn" id="btn3"><span class="ans-label">D</span><span class="ans-text"></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME OVER SCREEN ══════════════ -->
+<div id="gameOverScreen" class="screen">
+  <div class="result-box">
+    <div class="result-emoji" id="overEmoji">❌</div>
+    <div class="result-title" style="color:var(--pink)">Game Over!</div>
+    <div class="result-sub" id="overCause">Wrong answer!</div>
+    <div class="q-reveal" id="qReveal"></div>
+    <div class="answer-reveal">
+      <div class="answer-reveal-label">Correct answer</div>
+      <div class="answer-reveal-text" id="correctAnswerEl"></div>
+    </div>
+    <div class="score-pill">You got <span id="finalScore">0</span>/10 ✅</div>
+    <div class="result-btns">
+      <button class="result-btn primary" onclick="startGame()">Play Again 🔁</button>
+      <button class="result-btn secondary" onclick="goToMenu()">Menu 🏠</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ WIN SCREEN ══════════════ -->
+<div id="winScreen" class="screen">
+  <div class="result-box">
+    <div class="win-stars">⭐⭐⭐</div>
+    <div class="result-emoji">🏆</div>
+    <div class="result-title" style="color:var(--orange)">Perfect Score!</div>
+    <div class="result-sub">You answered all 10 correctly!</div>
+    <div class="score-pill">10 / 10 🌟</div>
+    <div class="streak-badge" id="winStreakBadge">🔥 Streak: 10</div>
+    <div class="result-btns">
+      <button class="result-btn primary" onclick="startGame()">Play Again 🔁</button>
+      <button class="result-btn secondary" onclick="goToMenu()">Menu 🏠</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ Categories ═══════════════════════════════════════════════════════════════
+const CATEGORIES = [
+  {id:'all',       name:'All',       icon:'🌟'},
+  {id:'science',   name:'Science',   icon:'🔬'},
+  {id:'animals',   name:'Animals',   icon:'🦁'},
+  {id:'space',     name:'Space',     icon:'🚀'},
+  {id:'geography', name:'Geography', icon:'🌍'},
+  {id:'history',   name:'History',   icon:'📚'},
+  {id:'math',      name:'Math',      icon:'➕'},
+  {id:'sports',    name:'Sports',    icon:'⚽'},
+  {id:'fun',       name:'Fun Facts', icon:'🎉'},
+];
+
+// ══ Question Bank (96 questions) ═════════════════════════════════════════════
+const Q = [
+  // ── SCIENCE ──────────────────────────────────────────────────────────────
+  {q:"What gas do plants need to make their food?",         opts:["Oxygen","Carbon Dioxide","Nitrogen","Water Vapor"],   ans:1, cat:"science"},
+  {q:"How many legs does a spider have?",                   opts:["6","8","10","12"],                                    ans:1, cat:"science"},
+  {q:"What is the hardest natural substance on Earth?",     opts:["Iron","Gold","Diamond","Quartz"],                     ans:2, cat:"science"},
+  {q:"What force pulls objects toward the ground?",         opts:["Magnetism","Friction","Gravity","Wind"],              ans:2, cat:"science"},
+  {q:"What is H₂O better known as?",                       opts:["Milk","Water","Juice","Air"],                         ans:1, cat:"science"},
+  {q:"How many colors are in a rainbow?",                   opts:["5","6","7","8"],                                      ans:2, cat:"science"},
+  {q:"What do caterpillars transform into?",                opts:["Bees","Moths","Butterflies","Beetles"],               ans:2, cat:"science"},
+  {q:"What gives plants their green color?",                opts:["Sunlight","Water","Chlorophyll","Soil"],              ans:2, cat:"science"},
+  {q:"How long does Earth take to orbit the Sun?",          opts:["1 Month","6 Months","1 Year","2 Years"],              ans:2, cat:"science"},
+  {q:"What state of matter is ice?",                        opts:["Gas","Liquid","Solid","Plasma"],                      ans:2, cat:"science"},
+  {q:"What do we call the center of an atom?",             opts:["Proton","Electron","Nucleus","Neutron"],              ans:2, cat:"science"},
+  {q:"Which is the smallest planet in our solar system?",   opts:["Pluto","Mars","Mercury","Venus"],                     ans:2, cat:"science"},
+
+  // ── ANIMALS ──────────────────────────────────────────────────────────────
+  {q:"Which is the fastest land animal?",                   opts:["Lion","Cheetah","Leopard","Ostrich"],                 ans:1, cat:"animals"},
+  {q:"What is the largest land animal?",                    opts:["Rhino","Hippo","Elephant","Giraffe"],                 ans:2, cat:"animals"},
+  {q:"How many legs does an insect have?",                  opts:["4","6","8","10"],                                     ans:1, cat:"animals"},
+  {q:"What is a baby dog called?",                          opts:["Cub","Calf","Kitten","Puppy"],                        ans:3, cat:"animals"},
+  {q:"What do bees make?",                                  opts:["Wax","Honey","Silk","Venom"],                         ans:1, cat:"animals"},
+  {q:"What is the tallest animal in the world?",            opts:["Elephant","Giraffe","Camel","Ostrich"],               ans:1, cat:"animals"},
+  {q:"Which common bird cannot fly?",                       opts:["Parrot","Eagle","Penguin","Owl"],                     ans:2, cat:"animals"},
+  {q:"How many humps does a Bactrian camel have?",          opts:["0","1","2","3"],                                      ans:2, cat:"animals"},
+  {q:"What do giant pandas eat mostly?",                    opts:["Leaves","Bamboo","Grass","Berries"],                  ans:1, cat:"animals"},
+  {q:"What is a group of fish called?",                     opts:["Herd","Flock","School","Pack"],                       ans:2, cat:"animals"},
+  {q:"What is the largest animal in the world?",            opts:["Elephant","Blue Whale","Giant Squid","Whale Shark"],  ans:1, cat:"animals"},
+  {q:"What is a female fox called?",                        opts:["Doe","Hen","Vixen","Ewe"],                            ans:2, cat:"animals"},
+
+  // ── SPACE ─────────────────────────────────────────────────────────────────
+  {q:"How many planets are in our solar system?",           opts:["7","8","9","10"],                                     ans:1, cat:"space"},
+  {q:"Which is the largest planet?",                        opts:["Saturn","Uranus","Neptune","Jupiter"],                ans:3, cat:"space"},
+  {q:"What is the closest star to Earth?",                  opts:["Sirius","Polaris","The Sun","Proxima"],               ans:2, cat:"space"},
+  {q:"Who was the first human to walk on the Moon?",        opts:["Buzz Aldrin","Yuri Gagarin","Neil Armstrong","Glenn"],ans:2, cat:"space"},
+  {q:"What is known as the red planet?",                    opts:["Mercury","Venus","Mars","Jupiter"],                   ans:2, cat:"space"},
+  {q:"What galaxy is Earth in?",                            opts:["Andromeda","Sombrero","Milky Way","Pinwheel"],        ans:2, cat:"space"},
+  {q:"How many moons does Mars have?",                      opts:["0","1","2","4"],                                      ans:2, cat:"space"},
+  {q:"Which planet is the hottest in our solar system?",    opts:["Mercury","Venus","Mars","Jupiter"],                   ans:1, cat:"space"},
+  {q:"What year did humans first land on the Moon?",        opts:["1959","1965","1969","1972"],                          ans:2, cat:"space"},
+  {q:"Which planet has a famous Great Red Spot storm?",     opts:["Saturn","Neptune","Jupiter","Uranus"],                ans:2, cat:"space"},
+  {q:"What do we call a person who travels to space?",      opts:["Astronomer","Cosmonaut","Astronaut","Navigator"],     ans:2, cat:"space"},
+  {q:"What is a shooting star actually made of?",           opts:["Burning gas","Meteor (space rock)","Comet ice","Star fragment"], ans:1, cat:"space"},
+
+  // ── GEOGRAPHY ────────────────────────────────────────────────────────────
+  {q:"What is the largest country by area?",                opts:["USA","Canada","China","Russia"],                      ans:3, cat:"geography"},
+  {q:"How many continents are there?",                      opts:["5","6","7","8"],                                      ans:2, cat:"geography"},
+  {q:"What is the capital of France?",                      opts:["London","Berlin","Paris","Madrid"],                   ans:2, cat:"geography"},
+  {q:"Which is the longest river in the world?",            opts:["Amazon","Mississippi","Nile","Yangtze"],              ans:2, cat:"geography"},
+  {q:"On which continent is the Sahara Desert?",            opts:["Asia","Africa","Australia","South America"],          ans:1, cat:"geography"},
+  {q:"What is the capital of Japan?",                       opts:["Beijing","Seoul","Tokyo","Bangkok"],                  ans:2, cat:"geography"},
+  {q:"Which is the smallest continent?",                    opts:["Europe","Australia","Antarctica","South America"],    ans:1, cat:"geography"},
+  {q:"What is the highest mountain in the world?",          opts:["K2","Mont Blanc","Kilimanjaro","Mt. Everest"],        ans:3, cat:"geography"},
+  {q:"What is the largest ocean?",                          opts:["Atlantic","Indian","Arctic","Pacific"],               ans:3, cat:"geography"},
+  {q:"What is the capital city of Australia?",              opts:["Sydney","Melbourne","Canberra","Brisbane"],           ans:2, cat:"geography"},
+  {q:"On which continent is Brazil located?",               opts:["Africa","Asia","South America","North America"],      ans:2, cat:"geography"},
+  {q:"How many stars are on the US flag?",                  opts:["48","49","50","52"],                                  ans:2, cat:"geography"},
+
+  // ── HISTORY ──────────────────────────────────────────────────────────────
+  {q:"Who built the Pyramids of Giza?",                     opts:["Romans","Greeks","Ancient Egyptians","Mayans"],       ans:2, cat:"history"},
+  {q:"Who painted the Mona Lisa?",                          opts:["Picasso","Michelangelo","Leonardo da Vinci","Raphael"],ans:2, cat:"history"},
+  {q:"Who invented the telephone?",                         opts:["Thomas Edison","A. Graham Bell","Nikola Tesla","Marconi"], ans:1, cat:"history"},
+  {q:"Who invented the light bulb?",                        opts:["A. Graham Bell","Nikola Tesla","Thomas Edison","Ben Franklin"], ans:2, cat:"history"},
+  {q:"What year did World War II end?",                     opts:["1942","1943","1944","1945"],                          ans:3, cat:"history"},
+  {q:"Who discovered gravity (inspired by a falling apple)?",opts:["Galileo","Isaac Newton","Einstein","Archimedes"],   ans:1, cat:"history"},
+  {q:"In which country were the first modern Olympics held?",opts:["Italy","France","United Kingdom","Greece"],          ans:3, cat:"history"},
+  {q:"What ship sank after hitting an iceberg in 1912?",    opts:["Lusitania","Bismarck","Titanic","Santa Maria"],       ans:2, cat:"history"},
+  {q:"Who wrote Romeo and Juliet?",                         opts:["Charles Dickens","William Shakespeare","Tolstoy","Mark Twain"], ans:1, cat:"history"},
+  {q:"Who was the first human to travel to space?",         opts:["Neil Armstrong","Buzz Aldrin","Yuri Gagarin","Alan Shepard"], ans:2, cat:"history"},
+  {q:"In which city is the Eiffel Tower?",                  opts:["London","Rome","Berlin","Paris"],                     ans:3, cat:"history"},
+  {q:"What ancient wonder was a giant statue on an island?",opts:["Sphinx","Hanging Gardens","Colossus of Rhodes","Lighthouse"], ans:2, cat:"history"},
+
+  // ── MATH ─────────────────────────────────────────────────────────────────
+  {q:"What is 7 × 8?",                                      opts:["54","56","58","60"],                                  ans:1, cat:"math"},
+  {q:"How many sides does a hexagon have?",                  opts:["5","6","7","8"],                                      ans:1, cat:"math"},
+  {q:"What is the square root of 81?",                       opts:["7","8","9","10"],                                     ans:2, cat:"math"},
+  {q:"How many seconds are in one minute?",                  opts:["50","60","70","100"],                                  ans:1, cat:"math"},
+  {q:"What is 25% of 200?",                                  opts:["25","40","50","75"],                                   ans:2, cat:"math"},
+  {q:"How many degrees are in a right angle?",               opts:["45","60","90","180"],                                  ans:2, cat:"math"},
+  {q:"What is the next prime number after 11?",              opts:["12","13","14","15"],                                   ans:1, cat:"math"},
+  {q:"How many faces does a cube have?",                     opts:["4","5","6","8"],                                       ans:2, cat:"math"},
+  {q:"What is 2 to the power of 5 (2⁵)?",                  opts:["16","25","32","64"],                                   ans:2, cat:"math"},
+  {q:"What is the Roman numeral for 50?",                    opts:["X","L","C","D"],                                       ans:1, cat:"math"},
+  {q:"3 dozen eggs = how many eggs?",                        opts:["24","30","36","42"],                                   ans:2, cat:"math"},
+  {q:"What is 15 × 15?",                                     opts:["175","205","225","250"],                               ans:2, cat:"math"},
+
+  // ── SPORTS ───────────────────────────────────────────────────────────────
+  {q:"How many players are on a basketball team (on court)?", opts:["4","5","6","7"],                                    ans:1, cat:"sports"},
+  {q:"What sport uses a shuttlecock?",                       opts:["Tennis","Squash","Badminton","Table Tennis"],         ans:2, cat:"sports"},
+  {q:"How many rings are on the Olympic flag?",              opts:["4","5","6","7"],                                      ans:1, cat:"sports"},
+  {q:"Approximately how long is a marathon race?",           opts:["25 km","32 km","42 km","55 km"],                      ans:2, cat:"sports"},
+  {q:"In cricket, how many balls are in an over?",           opts:["4","5","6","8"],                                      ans:2, cat:"sports"},
+  {q:"How many Grand Slam tennis tournaments are per year?", opts:["2","3","4","5"],                                      ans:2, cat:"sports"},
+  {q:"In soccer, how many players per team on the field?",   opts:["9","10","11","12"],                                   ans:2, cat:"sports"},
+  {q:"Which sport uses a puck instead of a ball?",           opts:["Baseball","Ice Hockey","Cricket","Polo"],             ans:1, cat:"sports"},
+  {q:"In bowling, what is it called to knock all pins?",     opts:["Eagle","Strike","Birdie","Ace"],                      ans:1, cat:"sports"},
+  {q:"How many holes are on a standard golf course?",        opts:["9","12","18","24"],                                   ans:2, cat:"sports"},
+  {q:"What color belt is the highest rank in karate?",       opts:["Red","Brown","Black","Purple"],                       ans:2, cat:"sports"},
+  {q:"In which sport would you do a slam dunk?",             opts:["Volleyball","Tennis","Football","Basketball"],        ans:3, cat:"sports"},
+
+  // ── FUN FACTS ─────────────────────────────────────────────────────────────
+  {q:"How many hearts does an octopus have?",                opts:["1","2","3","4"],                                      ans:2, cat:"fun"},
+  {q:"What is the longest bone in the human body?",          opts:["Spine","Femur","Tibia","Humerus"],                    ans:1, cat:"fun"},
+  {q:"What is the most spoken language by native speakers?", opts:["English","Spanish","Mandarin Chinese","Hindi"],       ans:2, cat:"fun"},
+  {q:"Which is the only mammal that can truly fly?",         opts:["Flying squirrel","Bat","Sugar glider","Colugos"],     ans:1, cat:"fun"},
+  {q:"How many bones does a shark have?",                    opts:["0","50","100","200"],                                  ans:0, cat:"fun"},
+  {q:"What is the smallest country in the world?",           opts:["Monaco","San Marino","Vatican City","Liechtenstein"], ans:2, cat:"fun"},
+  {q:"How many sides does a snowflake have?",                opts:["4","5","6","8"],                                      ans:2, cat:"fun"},
+  {q:"What is the fear of spiders called?",                  opts:["Claustrophobia","Arachnophobia","Acrophobia","Hydrophobia"], ans:1, cat:"fun"},
+  {q:"Which country has the most natural lakes?",            opts:["Russia","China","USA","Canada"],                      ans:3, cat:"fun"},
+  {q:"What is the most common eye color in the world?",      opts:["Blue","Green","Brown","Hazel"],                       ans:2, cat:"fun"},
+  {q:"A group of crows is called a...",                      opts:["Pack","Flock","Murder","Herd"],                        ans:2, cat:"fun"},
+  {q:"What animal is said to never forget?",                 opts:["Dolphin","Elephant","Crow","Chimpanzee"],             ans:1, cat:"fun"},
+];
+
+// ══ State ════════════════════════════════════════════════════════════════════
+let selectedCat  = 'all';
+let questionPool = [];
+let currentQIdx  = 0;
+let score        = 0;
+let streak       = 0;
+let totalQs      = 10;
+let timerInterval= null;
+let timeLeft     = 0;
+let gameActive   = false;
+let lastCorrect  = '';
+let lastQText    = '';
+let audioCtx     = null;
+
+const QUESTION_TIME = 10.0;
+const TICK_MS       = 50;
+const CIRC          = 2 * Math.PI * 42; // ≈ 263.9
+
+// ══ DOM refs ═════════════════════════════════════════════════════════════════
+let timerArcEl, timerDigitEl, qNumChipEl, streakChipEl, scoreChipEl;
+let questionEl, catBadgeEl, progressBarEl, answerBtns, timerWrapEl;
+
+// ══ Boot ═════════════════════════════════════════════════════════════════════
+function boot() {
+  timerArcEl    = document.getElementById('timerArc');
+  timerDigitEl  = document.getElementById('timerDigit');
+  qNumChipEl    = document.getElementById('qNumChip');
+  streakChipEl  = document.getElementById('streakChip');
+  scoreChipEl   = document.getElementById('scoreChip');
+  questionEl    = document.getElementById('questionText');
+  catBadgeEl    = document.getElementById('catBadge');
+  progressBarEl = document.getElementById('progressBar');
+  timerWrapEl   = document.getElementById('timerWrap');
+  answerBtns    = [0,1,2,3].map(i => document.getElementById('btn'+i));
+
+  timerArcEl.style.strokeDasharray  = CIRC;
+  timerArcEl.style.strokeDashoffset = 0;
+
+  buildCatGrid();
+}
+
+// ══ Category grid ════════════════════════════════════════════════════════════
+function buildCatGrid() {
+  const grid = document.getElementById('catGrid');
+  CATEGORIES.forEach(cat => {
+    const count = cat.id === 'all' ? Q.length : Q.filter(q => q.cat === cat.id).length;
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (cat.id === 'all' ? ' selected' : '');
+    btn.dataset.id = cat.id;
+    btn.innerHTML = `<span class="cat-icon">${cat.icon}</span>
+                     <span class="cat-name">${cat.name}</span>
+                     <span class="cat-count">${count} Qs</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedCat = cat.id;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// ══ Navigation ═══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function quitGame() {
+  clearInterval(timerInterval);
+  gameActive = false;
+  showScreen('homeScreen');
+}
+
+function goToMenu() {
+  showScreen('homeScreen');
+}
+
+// ══ Shuffle ══════════════════════════════════════════════════════════════════
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ══ Game start ═══════════════════════════════════════════════════════════════
+function startGame() {
+  const pool = selectedCat === 'all' ? Q : Q.filter(q => q.cat === selectedCat);
+  questionPool = shuffle(pool).slice(0, 10);
+  totalQs      = questionPool.length;
+  currentQIdx  = 0;
+  score        = 0;
+  streak       = 0;
+  gameActive   = true;
+
+  showScreen('gameScreen');
+  showQuestion();
+}
+
+// ══ Question display ═════════════════════════════════════════════════════════
+function showQuestion() {
+  if (currentQIdx >= totalQs) { showWin(); return; }
+
+  const q = questionPool[currentQIdx];
+  lastQText   = q.q;
+  lastCorrect = q.opts[q.ans];
+
+  // Topbar
+  qNumChipEl.textContent   = `Q ${currentQIdx + 1}/${totalQs}`;
+  streakChipEl.textContent = `🔥 ${streak}`;
+  scoreChipEl.textContent  = `✅ ${score}`;
+
+  // Progress bar
+  const pct = (currentQIdx / totalQs) * 100;
+  progressBarEl.style.width = pct + '%';
+
+  // Category badge
+  const cat = CATEGORIES.find(c => c.id === q.cat);
+  catBadgeEl.textContent = cat ? cat.icon + ' ' + cat.name : q.cat;
+
+  // Question
+  questionEl.textContent = q.q;
+
+  // Shuffle options keeping correct-answer info
+  const shuffled = shuffle(q.opts.map((text, i) => ({text, correct: i === q.ans})));
+  const labels   = ['A','B','C','D'];
+
+  answerBtns.forEach((btn, i) => {
+    btn.querySelector('.ans-label').textContent = labels[i];
+    btn.querySelector('.ans-text').textContent  = shuffled[i].text;
+    btn.dataset.correct = shuffled[i].correct;
+    btn.className       = 'answer-btn';
+    btn.disabled        = false;
+    btn.onclick         = () => onAnswer(btn, shuffled[i].correct);
+  });
+
+  // Remove timer urgency class
+  timerWrapEl.classList.remove('timer-urgent');
+
+  startTimer();
+}
+
+// ══ Timer ════════════════════════════════════════════════════════════════════
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = QUESTION_TIME;
+  updateTimerUI();
+
+  timerInterval = setInterval(() => {
+    timeLeft -= TICK_MS / 1000;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      updateTimerUI();
+      clearInterval(timerInterval);
+      onTimeout();
+    } else {
+      updateTimerUI();
+    }
+  }, TICK_MS);
+}
+
+function updateTimerUI() {
+  const pct    = Math.max(0, timeLeft / QUESTION_TIME);
+  const offset = CIRC * (1 - pct);
+  timerArcEl.style.strokeDashoffset = offset;
+
+  const ceil = Math.ceil(timeLeft);
+  timerDigitEl.textContent = ceil === 0 ? '0' : ceil;
+
+  let color;
+  if (pct > 0.5)       color = 'var(--green)';
+  else if (pct > 0.25) color = 'var(--yellow)';
+  else                 color = 'var(--pink)';
+
+  timerArcEl.style.stroke  = color;
+  timerDigitEl.style.color = color;
+
+  // Add urgency shake when ≤ 1.5s
+  if (timeLeft <= 1.5 && timeLeft > 0) timerWrapEl.classList.add('timer-urgent');
+}
+
+// ══ Answer handling ══════════════════════════════════════════════════════════
+function onAnswer(btn, isCorrect) {
+  clearInterval(timerInterval);
+  timerWrapEl.classList.remove('timer-urgent');
+  answerBtns.forEach(b => { b.disabled = true; b.onclick = null; });
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    score++;
+    streak++;
+    streakChipEl.textContent = `🔥 ${streak}`;
+    scoreChipEl.textContent  = `✅ ${score}`;
+    playTone(660, 0.08, 'sine');
+    setTimeout(() => playTone(880, 0.07, 'sine'), 100);
+
+    setTimeout(() => { currentQIdx++; showQuestion(); }, 550);
+
+  } else {
+    btn.classList.add('wrong');
+    answerBtns.forEach(b => { if (b.dataset.correct === 'true') b.classList.add('correct'); });
+    streak = 0;
+    playTone(180, 0.15, 'sawtooth');
+    setTimeout(() => showGameOver('wrong'), 1600);
+  }
+}
+
+function onTimeout() {
+  timerWrapEl.classList.remove('timer-urgent');
+  answerBtns.forEach(b => {
+    b.disabled = true; b.onclick = null;
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+  });
+  streak = 0;
+  playTone(180, 0.15, 'sawtooth');
+  setTimeout(() => showGameOver('timeout'), 1600);
+}
+
+// ══ Game over ════════════════════════════════════════════════════════════════
+function showGameOver(cause) {
+  gameActive = false;
+  document.getElementById('overEmoji').textContent   = cause === 'timeout' ? '⏰' : '❌';
+  document.getElementById('overCause').textContent   = cause === 'timeout' ? "Time's up! ⏰" : 'Wrong answer! ❌';
+  document.getElementById('qReveal').textContent     = lastQText;
+  document.getElementById('correctAnswerEl').textContent = lastCorrect;
+  document.getElementById('finalScore').textContent  = score;
+  showScreen('gameOverScreen');
+}
+
+// ══ Win ══════════════════════════════════════════════════════════════════════
+function showWin() {
+  gameActive = false;
+  document.getElementById('winStreakBadge').textContent = `🔥 Streak: ${streak}`;
+  showScreen('winScreen');
+  spawnConfetti();
+  playTone(523, 0.1, 'sine');
+  setTimeout(() => playTone(659, 0.1, 'sine'), 150);
+  setTimeout(() => playTone(784, 0.12, 'sine'), 300);
+  setTimeout(() => playTone(1047, 0.15, 'sine'), 480);
+  setTimeout(() => playTone(1319, 0.18, 'sine'), 680);
+}
+
+// ══ Confetti ═════════════════════════════════════════════════════════════════
+function spawnConfetti() {
+  const colors = ['#FF6B9D','#FFD93D','#4ECDC4','#95E06C','#FF9A3C','#B388EB'];
+  for (let i = 0; i < 90; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = [
+        `left:${Math.random()*100}vw`,
+        `width:${6+Math.random()*8}px`,
+        `height:${6+Math.random()*8}px`,
+        `background:${colors[Math.floor(Math.random()*colors.length)]}`,
+        `animation-duration:${1.2+Math.random()*1.8}s`,
+        `animation-delay:${Math.random()*0.8}s`,
+        `border-radius:${Math.random()>0.5?'50%':'3px'}`
+      ].join(';');
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }, i * 18);
+  }
+}
+
+// ══ Audio ════════════════════════════════════════════════════════════════════
+function playTone(freq, dur, type = 'sine') {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  } catch(e) {}
+}
+
+boot();
+</script>
+</body>
+</html>

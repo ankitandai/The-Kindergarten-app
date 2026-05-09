@@ -179,7 +179,10 @@
   .game-card.memory  { background:linear-gradient(135deg,#ff758c,#ff4b2b); color:white; }
   .game-card.emotion { background:linear-gradient(135deg,#FFD93D,#FF9A3C); color:var(--ink); }
   .game-card.sorting { background:linear-gradient(135deg,#56CCF2,#2F80ED); color:white; }
-  .game-card.story   { background:linear-gradient(135deg,#DA22FF,#9733EE); color:white; }
+  .game-card.story      { background:linear-gradient(135deg,#DA22FF,#9733EE); color:white; }
+  .game-card.jigsaw     { background:linear-gradient(135deg,#43e97b,#38f9d7); color:var(--ink); }
+  .game-card.wordsearch { background:linear-gradient(135deg,#fa709a,#fee140); color:var(--ink); }
+  .game-card.gkquiz     { background:linear-gradient(135deg,#6a11cb,#2575fc); color:white; }
   .game-icon { font-size:36px; line-height:1; }
   .game-name { font-family:'Bowlby One',sans-serif; font-size:14px; line-height:1.2; }
   .game-desc { font-size:11px; font-weight:600; opacity:.85; }
@@ -386,9 +389,9 @@
 <div class="screen" id="gameScreen">
   <div class="game-topbar">
     <button class="back-btn" onclick="showScreen('gradeScreen')">←</button>
-    <button class="daily-corner-btn" onclick="launchDaily()">
-      <span class="daily-corner-emoji">⭐</span>
-      <span class="daily-corner-label">Daily Challenge</span>
+    <button class="daily-corner-btn" onclick="launchGKQuiz()">
+      <span class="daily-corner-emoji">🧠</span>
+      <span class="daily-corner-label">10-Sec Quiz</span>
     </button>
   </div>
 
@@ -456,6 +459,21 @@
       <div class="game-name">Emotion Faces</div>
       <div class="game-desc">Match feelings to faces!</div>
     </div>
+    <div class="game-card jigsaw" onclick="launchJigsaw()">
+      <div class="game-icon">🧩</div>
+      <div class="game-name">Jigsaw Puzzle</div>
+      <div class="game-desc">Piece together fun puzzles!</div>
+    </div>
+    <div class="game-card wordsearch" onclick="launchWordSearch()">
+      <div class="game-icon">🔍</div>
+      <div class="game-name">Word Search</div>
+      <div class="game-desc">Find hidden words in the grid!</div>
+    </div>
+    <div class="game-card gkquiz" onclick="launchGKQuiz()">
+      <div class="game-icon">🧠</div>
+      <div class="game-name">10-Sec Quiz</div>
+      <div class="game-desc">10 questions · beat the clock!</div>
+    </div>
   </div>
 </div>
 
@@ -483,8 +501,11 @@ const GAME_GRADES = {
   mix:     ['k','g1','g2','g3','g4'],
   memory:  ['prek','k','g1','g2'],
   emotion: ['prek'],
-  sorting: ['prek','k'],
-  story:   ['prek','k','g1','g2'],
+  sorting:    ['prek','k'],
+  story:      ['prek','k','g1','g2'],
+  jigsaw:     ['prek','k','g1','g2','g3','g4'],
+  wordsearch: ['k','g1','g2','g3','g4'],
+  gkquiz:     ['k','g1','g2','g3','g4'],
 };
 
 const BUILT_IN = {
@@ -1215,7 +1236,10 @@ function launchMemory()  { window.location.href = 'memory-match.html';    }
 function launchEmotion() { window.location.href = 'emotion-faces.html';   }
 function launchSorting() { window.location.href = 'sorting-bin.html';     }
 function launchDaily()   { window.location.href = 'daily-challenge.html'; }
-function launchStory()   { window.location.href = 'story-builder.html';   }
+function launchStory()      { window.location.href = 'story-builder.html';  }
+function launchJigsaw()     { window.location.href = 'jigsaw-puzzle.html';  }
+function launchWordSearch() { window.location.href = 'word-search.html';    }
+function launchGKQuiz()     { window.location.href = 'gk-quiz.html';        }
 
 // Always start on the avatar selection screen — no auto-restore navigation.
 </script>
